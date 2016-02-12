@@ -1,6 +1,4 @@
-
-% Sets up the workspace
-setscreen ("graphics:480;640, nobuttonbar, position:center;center, noecho, offscreenonly")
+setscreen ("graphics:448;576, nobuttonbar, position:center;center, noecho, offscreenonly")
 
 % Initializes all the procedures and their parameters
 forward proc drawPlayScreen
@@ -26,8 +24,94 @@ var inGame := false % Defaults to Main Menu
 const numberOfOptions := 3
 var optionSelected := 1
 
-% All the images
-const pacman : int := Pic.FileNew ("pacman.bmp")
+% Loads all the sprites
+const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
+
+const iPacmanLeft0 : int := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
+const iPacmanLeft1 : int := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
+const iPacmanLeft2 : int := Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32)
+
+const iPacmanDown0 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 90, 16, 16)
+const iPacmanDown1 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 90, 16, 16)
+const iPacmanDown2 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 90, 16, 16)
+
+const iPacmanRight0 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 180, 16, 16)
+const iPacmanRight1 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 180, 16, 16)
+const iPacmanRight2 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 180, 16, 16)
+
+const iPacmanUp0 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 270, 16, 16)
+const iPacmanUp1 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16)
+const iPacmanUp2 : int := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 270, 16, 16)
+
+const iPacmanDead0 : int := Pic.Scale (Pic.FileNew ("pacman/pacman3.bmp"), 32, 32)
+const iPacmanDead1 : int := Pic.Scale (Pic.FileNew ("pacman/pacman4.bmp"), 32, 32)
+const iPacmanDead2 : int := Pic.Scale (Pic.FileNew ("pacman/pacman5.bmp"), 32, 32)
+const iPacmanDead3 : int := Pic.Scale (Pic.FileNew ("pacman/pacman6.bmp"), 32, 32)
+const iPacmanDead4 : int := Pic.Scale (Pic.FileNew ("pacman/pacman7.bmp"), 32, 32)
+const iPacmanDead5 : int := Pic.Scale (Pic.FileNew ("pacman/pacman8.bmp"), 32, 32)
+const iPacmanDead6 : int := Pic.Scale (Pic.FileNew ("pacman/pacman9.bmp"), 32, 32)
+const iPacmanDead7 : int := Pic.Scale (Pic.FileNew ("pacman/pacman10.bmp"), 32, 32)
+const iPacmanDead8 : int := Pic.Scale (Pic.FileNew ("pacman/pacman11.bmp"), 32, 32)
+const iPacmanDead9 : int := Pic.Scale (Pic.FileNew ("pacman/pacman12.bmp"), 32, 32)
+const iPacmanDead10 : int := Pic.Scale (Pic.FileNew ("pacman/pacman13.bmp"), 32, 32)
+const iPacmanDead11 : int := Pic.Scale (Pic.FileNew ("pacman/pacman14.bmp"), 32, 32)
+const iPacmanDead12 : int := Pic.Scale (Pic.FileNew ("pacman/pacman15.bmp"), 32, 32)
+
+
+const iBlinkyLeft1 : int := Pic.Scale (Pic.FileNew ("pacman/blinky_side1.bmp"), 32, 32)
+const iBlinkyLeft2 : int := Pic.Scale (Pic.FileNew ("pacman/blinky_side2.bmp"), 32, 32)
+
+const iBlinkyDown1 : int := Pic.Scale (Pic.FileNew ("pacman/blinky_down1.bmp"), 32, 32)
+const iBlinkyDown2 : int := Pic.Scale (Pic.FileNew ("pacman/blinky_down2.bmp"), 32, 32)
+
+const iBlinkyRight1 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/blinky_side1.bmp"), 32, 32))
+const iBlinkyRight2 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/blinky_side2.bmp"), 32, 32))
+
+const iBlinkyUp1 : int := Pic.Scale (Pic.FileNew ("pacman/blinky_up1.bmp"), 32, 32)
+const iBlinkyUp2 : int := Pic.Scale (Pic.FileNew ("pacman/blinky_up2.bmp"), 32, 32)
+
+
+const iClydeLeft1 : int := Pic.Scale (Pic.FileNew ("pacman/clyde_side1.bmp"), 32, 32)
+const iClydeLeft2 : int := Pic.Scale (Pic.FileNew ("pacman/clyde_side2.bmp"), 32, 32)
+
+const iClydeDown1 : int := Pic.Scale (Pic.FileNew ("pacman/clyde_down1.bmp"), 32, 32)
+const iClydeDown2 : int := Pic.Scale (Pic.FileNew ("pacman/clyde_down2.bmp"), 32, 32)
+
+const iClydeRight1 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/clyde_side1.bmp"), 32, 32))
+const iClydeRight2 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/clyde_side2.bmp"), 32, 32))
+
+const iClydeUp1 : int := Pic.Scale (Pic.FileNew ("pacman/clyde_up1.bmp"), 32, 32)
+const iClydeUp2 : int := Pic.Scale (Pic.FileNew ("pacman/clyde_up2.bmp"), 32, 32)
+
+
+const iInkyLeft1 : int := Pic.Scale (Pic.FileNew ("pacman/inky_side1.bmp"), 32, 32)
+const iInkyLeft2 : int := Pic.Scale (Pic.FileNew ("pacman/inky_side2.bmp"), 32, 32)
+
+const iInkyDown1 : int := Pic.Scale (Pic.FileNew ("pacman/inky_down1.bmp"), 32, 32)
+const iInkyDown2 : int := Pic.Scale (Pic.FileNew ("pacman/inky_down2.bmp"), 32, 32)
+
+const iInkyRight1 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/inky_side1.bmp"), 32, 32))
+const iInkyRight2 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/inky_side2.bmp"), 32, 32))
+
+const iInkyUp1 : int := Pic.Scale (Pic.FileNew ("pacman/inky_up1.bmp"), 32, 32)
+const iInkyUp2 : int := Pic.Scale (Pic.FileNew ("pacman/inky_up2.bmp"), 32, 32)
+
+
+const iPinkyLeft1 : int := Pic.Scale (Pic.FileNew ("pacman/pinky_side1.bmp"), 32, 32)
+const iPinkyLeft2 : int := Pic.Scale (Pic.FileNew ("pacman/pinky_side2.bmp"), 32, 32)
+
+const iPinkyDown1 : int := Pic.Scale (Pic.FileNew ("pacman/pinky_down1.bmp"), 32, 32)
+const iPinkyDown2 : int := Pic.Scale (Pic.FileNew ("pacman/pinky_down2.bmp"), 32, 32)
+
+const iPinkyRight1 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pinky_side1.bmp"), 32, 32))
+const iPinkyRight2 : int := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pinky_side2.bmp"), 32, 32))
+
+const iPinkyUp1 : int := Pic.Scale (Pic.FileNew ("pacman/pinky_up1.bmp"), 32, 32)
+const iPinkyUp2 : int := Pic.Scale (Pic.FileNew ("pacman/pinky_up2.bmp"), 32, 32)
+
+View.SetTransparentColor (black)
+
+
 
 
 class Rectangle
@@ -48,6 +132,11 @@ class Rectangle
     fcn isTouching (rect : ^Rectangle) : boolean
 	result (x < rect -> x + rect -> width and x + width > rect -> x and y < rect -> y + rect -> height and y + height > rect -> y)
     end isTouching
+
+    proc setPosition (xPos, yPos : int)
+	x := xPos
+	y := yPos
+    end setPosition
 
     proc move (xOff, yOff : int)
 	x := x + xOff
@@ -105,14 +194,17 @@ body proc updateAI
 
 end updateAI
 
+var pacX := maxx div 2
+var pacY := maxy div 2
+
 % Draws the screen
 body proc drawPlayScreen
     % Draws the background
     drawfillbox (0, 0, maxx, maxy, black)
 
-    Pic.Draw (pacman, maxx div 2, maxy div 2, 0)
+    Pic.Draw (iBlinkyRight2, pacX, pacY, picUnderMerge)
 
-
+    Pic.Draw (iMap, 0, 0, picUnderMerge)
 end drawPlayScreen
 
 % Draws a number (used to draw the score)
@@ -147,12 +239,22 @@ body proc gameInput
     Input.KeyDown (chars)
 
     if (chars (KEY_UP_ARROW)) then
-
+	pacY := pacY + 3
     end if
 
     if (chars (KEY_DOWN_ARROW)) then
-
+	pacY := pacY - 3
     end if
+
+    if (chars (KEY_RIGHT_ARROW)) then
+	pacX := pacX + 3
+    end if
+
+    if (chars (KEY_LEFT_ARROW)) then
+	pacX := pacX - 3
+    end if
+
+
 
     if (chars ('r')) then
 	reset
