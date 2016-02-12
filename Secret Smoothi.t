@@ -17,7 +17,7 @@ const halfy := floor (maxy / 2)
 const xMenuOff := 110
 const yMenuOff := 430
 
-const tickInterval := 2000 % The time in milliseconds between ticks
+const tickInterval := (1000 / 60) % The time in milliseconds between ticks
 var currentTime := 0
 var lastTick := 0
 
@@ -26,48 +26,55 @@ var inGame := false % Defaults to Main Menu
 const numberOfOptions := 3
 var optionSelected := 1
 
+% All the images
+const pacman : int := Pic.FileNew ("pacman.bmp")
+
+
 class Rectangle
 
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setCarAttributes, putCarAttributes
+    export setRectangle, x, y, width, height, isTouching, move
 
-    %% These are the variables in the class
-    var name : string
-    var Length, cost : int
+    var x, y, width, height : int
 
-    %% These procedures modify the data in the class and output it
-    proc setCarAttributes (nam : string, l, c : int)
+    proc setRectangle (newX, newY, newWidth, newHeight : int)
+	x := newX
+	y := newY
+	width := newWidth
+	height := newHeight
+    end setRectangle
 
-	name := nam
-	Length := l
-	cost := c
+    fcn isTouching (rect : ^Rectangle) : boolean
+	result (x < rect -> x + rect -> width and x + width > rect -> x and y < rect -> y + rect -> height and y + height > rect -> y)
+    end isTouching
 
-    end setCarAttributes
-
-    proc putCarAttributes
-
-	put "Car name: ", name
-	put "Car Length: ", Length
-	put "Car Cost: ", cost
-
-    end putCarAttributes
+    proc move (xOff, yOff : int)
+	x := x + xOff
+	y := y + yOff
+    end move
 
 end Rectangle
 
-var Volvo : ^Rectangle
-new Volvo
-% ^ can also be "pointer to"
+var Butt : ^Rectangle
+new Butt
+
+Butt -> setRectangle (500, 4, 100, 200)
+
+var Ox : ^Rectangle
+new Ox
+
+Ox -> setRectangle (5, 4, 100, 200)
 
 
-
-Volvo -> setCarAttributes ("Volvo", 100, 20000)
-Volvo -> putCarAttributes
+var isTouched := false
 
 
 % The main gameloop
 loop
     currentTime := Time.Elapsed
+
+    isTouched := Butt -> isTouching (Ox)
 
     if (currentTime > lastTick + tickInterval) then
 	if inGame = true then
@@ -89,9 +96,6 @@ loop
 	lastTick := currentTime
     end if
 
-    % Caps the framerate
-    % delay (millSecTickDelay)
-
     % Updates the frame
     View.Update
 end loop
@@ -103,6 +107,11 @@ end updateAI
 
 % Draws the screen
 body proc drawPlayScreen
+    % Draws the background
+    drawfillbox (0, 0, maxx, maxy, black)
+
+    Pic.Draw (pacman, maxx div 2, maxy div 2, 0)
+
 
 end drawPlayScreen
 
@@ -164,10 +173,8 @@ end reset
 %Draws the menu screen
 body proc drawMenuScreen
 
-    % Draws the background and frame
+    % Draws the background
     drawfillbox (0, 0, maxx, maxy, black)
-    drawfillbox (0, maxy - 10, maxx, maxy, white)
-    drawfillbox (0, 0, maxx, 10, white)
 
     % Draws main text
     Font.Draw ("PACMAN", xMenuOff, yMenuOff, Font.New (typeface + ":121:bold"), white)
@@ -232,6 +239,10 @@ body proc menuInput
 	if optionSelected = 1 then
 	    inGame := true
 	    reset
+	elsif optionSelected = 2 then
+
+	elsif optionSelected = 3 then
+
 	end if
     end if
 
