@@ -158,7 +158,7 @@ class Rectangle
     import debug, Direction
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove, dir, autoCollisionMove
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove, dir, autoCollisionMove, setDirection
 
     var x, y, width, height : int
 
@@ -225,6 +225,10 @@ class Rectangle
 	result true
     end collisionMove
 
+    proc setDirection (newDir : Direction)
+	dir := newDir
+    end setDirection
+
     % Only used for when the game automatically moves the player
     fcn autoCollisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
 	move (xOff, yOff)
@@ -273,7 +277,7 @@ class SpriteRectangle
     import Rectangle, Direction, FrameHolder
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, direction, autoCollisionMove
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, direction, autoCollisionMove, setDirection
 
     var rec : ^Rectangle
     new rec
@@ -353,6 +357,10 @@ class SpriteRectangle
 	result rec -> dir
     end direction
 
+    proc setDirection (newDir : Direction)
+	rec -> setDirection (newDir)
+    end setDirection
+
     proc draw
 	framesPassed := framesPassed + 1
 
@@ -388,7 +396,7 @@ class Pellet
     import Rectangle, Direction, FrameHolder, iLargePellet, iSmallPellet, addScore, SpriteRectangle
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setPellet, x, y, width, height, isTouching, draw, setPosition, setFrames, update
+    export setPellet, x, y, width, height, isTouching, draw, setPosition, setFrames, update, reset
 
     var rec : ^Rectangle
     new rec
@@ -465,6 +473,8 @@ class Pellet
 
     proc reset
 	isEaten := false
+	framesPassed := 0
+	currentFrame := 0
     end reset
 
     fcn x : int
@@ -752,31 +762,440 @@ var rightTelePad : ^Rectangle
 new rightTelePad
 rightTelePad -> setRectangle (224 + 12, 140, 0, 16)
 
-/*
- var pellet1 : ^Pellet
- new pellet1
- pellet1 -> setPellet (11, 27, false)
+var pellets : array 0 .. 1123 of ^Pellet
+var totalPellets := 0
 
- var pellet2 : ^Pellet
- new pellet2
- pellet2 -> setPellet (19, 27, false)
-
- var pellet3 : ^Pellet
- new pellet3
- pellet3 -> setPellet (27, 27, false)
- */
-var pellets : array 0 .. 25 of ^Pellet
-%pellets (0) := pellet1
-%pellets (1) := pellet2
-%pellets (2) := pellet3
-
-for i : 0 .. 25
+for i : 0 .. 25 % Bottom row
     var newPellet : ^Pellet
     new newPellet
     newPellet -> setPellet (11 + (8 * i), 27, false)
-    
-    pellets (i) := newPellet
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
 end for
+
+for i : 0 .. 4 % Second bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11 + (8 * i), 51, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Second bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (75 + (8 * i), 51, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Second bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123 + (8 * i), 51, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 4 % Second bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (179 + (8 * i), 51, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+var newPellet1 : ^Pellet
+new newPellet1
+newPellet1 -> setPellet (8, 72, true)
+newPellet1 -> setFrames (20)
+
+pellets (totalPellets) := newPellet1
+totalPellets := totalPellets + 1
+
+var newPellet2 : ^Pellet
+new newPellet2
+newPellet2 -> setPellet (208, 72, true)
+newPellet2 -> setFrames (20)
+
+pellets (totalPellets) := newPellet2
+totalPellets := totalPellets + 1
+
+var newPellet3 : ^Pellet
+new newPellet3
+newPellet3 -> setPellet (8, 232, true)
+newPellet3 -> setFrames (20)
+
+pellets (totalPellets) := newPellet3
+totalPellets := totalPellets + 1
+
+var newPellet4 : ^Pellet
+new newPellet4
+newPellet4 -> setPellet (208, 232, true)
+newPellet4 -> setFrames (20)
+
+pellets (totalPellets) := newPellet4
+totalPellets := totalPellets + 1
+
+for i : 0 .. 1 % Third bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (19 + (8 * i), 75, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 5 % Third bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (59 + (8 * i), 75, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 5 % Third bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123 + (8 * i), 75, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Third bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (195 + (8 * i), 75, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 4 % Fourth bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11 + (8 * i), 99, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 5 % Fourth bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (59 + (8 * i), 99, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 5 % Fourth bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123 + (8 * i), 99, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 4 % Fourth bottom row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (179 + (8 * i), 99, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 9 % Top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (19 + (8 * i), 251, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 9 % Top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (131 + (8 * i), 251, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Second top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (19 + (8 * i), 219, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 13 % Second top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (59 + (8 * i), 219, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Second top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (179 + (8 * i), 219, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 4 % Third top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11 + (8 * i), 195, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Third top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (75 + (8 * i), 195, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Third top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123 + (8 * i), 195, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 4 % Third top row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (179 + (8 * i), 195, false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11, 35 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (99, 35 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123, 35 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (211, 35 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column 2nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (27, 59 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column 2nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (75, 59 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column 2nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (147, 59 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column 2nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (195, 59 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 24 % Left column GIANT DONG
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (51, 51 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 24 % Right column GIANT DONG
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (171, 51 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column 3nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11, 83 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left column 3nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (99, 83 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Right column 3nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123, 83 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Right column 3nd row
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (211, 83 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Left Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11, 203 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11, 243 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Left Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (75, 203 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Left Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (99, 227 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Right Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (123, 227 + (8 * i), false)
+
+    
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Right Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (147, 203 + (8 * i), false)
+
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 1 % Right Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (211, 243 + (8 * i), false)
+
+    
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
+for i : 0 .. 3 % Right Column top
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (211, 203 + (8 * i), false)
+
+    
+    pellets (totalPellets) := newPellet
+    totalPellets := totalPellets + 1
+end for
+
 
 % The main gameloop
 loop
@@ -823,10 +1242,12 @@ body proc gameMath
 
     var playerPelletRect : ^Rectangle
     new playerPelletRect
-    playerPelletRect -> setRectangle(User -> x + 6, User -> y + 6, User -> width - 12, User -> height - 12)
-    
+    playerPelletRect -> setRectangle (User -> x + 6, User -> y + 6, User -> width - 12, User -> height - 12)
+
     for i : 0 .. upper (pellets)
-	pellets (i) -> update (playerPelletRect)
+	if (i < totalPellets) then
+	    pellets (i) -> update (playerPelletRect)
+	end if
     end for
 
 end gameMath
@@ -845,21 +1266,19 @@ body proc drawPlayScreen
     end for
 
     for i : 0 .. upper (pellets)
-	pellets (i) -> draw
+	if (i < totalPellets) then
+	    pellets (i) -> draw
+	end if
     end for
 end drawPlayScreen
 
-var autoUp := false
-var autoUpOverride := true
-var autoDown := false
-var autoDownOverride := true
-var autoRight := false
-var autoRightOverride := true
-var autoLeft := false
-var autoLeftOverride := true
-
 % Detects when players presses the key for in-game
 body proc gameInput
+    var autoUpOverride := true
+    var autoDownOverride := true
+    var autoRightOverride := true
+    var autoLeftOverride := true
+
     var chars : array char of boolean
     Input.KeyDown (chars)
 
@@ -897,19 +1316,19 @@ body proc gameInput
 
     if User -> direction = Direction.right and not autoRightOverride then
 	if not User -> autoCollisionMove (1, 0, walls) then
-	    autoRight := false
+
 	end if
     elsif User -> direction = Direction.left and not autoLeftOverride then
 	if not User -> autoCollisionMove (-1, 0, walls) then
-	    autoLeft := false
+
 	end if
     elsif User -> direction = Direction.up and not autoUpOverride then
 	if not User -> autoCollisionMove (0, 1, walls) then
-	    autoUp := false
+
 	end if
     elsif User -> direction = Direction.down and not autoDownOverride then
 	if not User -> autoCollisionMove (0, -1, walls) then
-	    autoDown := false
+
 	end if
     end if
 
@@ -936,7 +1355,14 @@ body proc reset
 end reset
 
 body proc setupNextLevel
+    User -> setPosition (104, 68)
+    User -> setDirection (Direction.up)
 
+    for i : 0 .. upper (pellets)
+	if (i < totalPellets) then
+	    pellets (i) -> reset
+	end if
+    end for
 end setupNextLevel
 
 %Draws the menu screen
