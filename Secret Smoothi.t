@@ -29,25 +29,29 @@ type Direction : enum (up, down, left, right)
 % Loads all the sprites
 const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
 
-var iPacmanLeft : array 0 .. 2 of int
+var iPacmanLeft : array 0 .. 3 of int
 iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
 iPacmanLeft (1) := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
 iPacmanLeft (2) := Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32)
+iPacmanLeft (3) := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
 
-var iPacmanDown : array 0 .. 2 of int
+var iPacmanDown : array 0 .. 3 of int
 iPacmanDown (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 90, 16, 16)
 iPacmanDown (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 90, 16, 16)
 iPacmanDown (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 90, 16, 16)
+iPacmanDown (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 90, 16, 16)
 
-var iPacmanRight : array 0 .. 2 of int
+var iPacmanRight : array 0 .. 3 of int
 iPacmanRight (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 180, 16, 16)
 iPacmanRight (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 180, 16, 16)
 iPacmanRight (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 180, 16, 16)
+iPacmanRight (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 180, 16, 16)
 
-var iPacmanUp : array 0 .. 2 of int
+var iPacmanUp : array 0 .. 3 of int
 iPacmanUp (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 270, 16, 16)
 iPacmanUp (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16)
 iPacmanUp (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 270, 16, 16)
+iPacmanUp (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16)
 
 var iPacmanDead : array 0 .. 12 of int
 iPacmanDead (0) := Pic.Scale (Pic.FileNew ("pacman/pacman3.bmp"), 32, 32)
@@ -183,7 +187,12 @@ class Rectangle
 
 
     proc draw
-	drawfillbox (x * 2, y * 2, (x + width) * 2, (y + height) * 2, white)
+	Draw.Line (x * 2, y * 2, x * 2, (y + height) * 2, white)
+	Draw.Line (x * 2, (y + height) * 2, (x + width) * 2, (y + height) * 2, white)
+	Draw.Line ((x + width) * 2, (y + height) * 2, (x + width) * 2, y * 2, white)
+	Draw.Line ((x + width) * 2, y * 2, x * 2, y * 2, white)
+
+	%drawfillbox (x * 2, y * 2, (x + width) * 2, (y + height) * 2, white)
     end draw
 
 end Rectangle
@@ -279,27 +288,120 @@ end SpriteRectangle
 var User : ^SpriteRectangle
 new User
 
-User -> setRectangle (200, 100, 16, 16)
-User -> setFrames (iPacmanUp, 10, 0, 0)
+User -> setRectangle (200, 200, 16, 16)
+User -> setFrames (iPacmanUp, 5, 0, 0)
 
-var Ox : ^Rectangle
-new Ox
+var bottomWall0 : ^Rectangle
+new bottomWall0
+bottomWall0 -> setRectangle (0, 16, 224, 4)
 
-Ox -> setRectangle (50, 60, 10, 20)
+var bottomWall1 : ^Rectangle
+new bottomWall1
+bottomWall1 -> setRectangle (0, 16, 4, 248)
 
+var bottomWall2 : ^Rectangle
+new bottomWall2
+bottomWall2 -> setRectangle (20, 36, 72, 8)
 
-var walls : array 0 .. 1 of ^Rectangle
-walls (0) := Ox
-walls (1) := Ox
+var bottomWall3 : ^Rectangle
+new bottomWall3
+bottomWall3 -> setRectangle (132, 36, 72, 8)
 
-var isTouched := false
+var bottomWall4 : ^Rectangle
+new bottomWall4
+bottomWall4 -> setRectangle (220, 16, 4, 248)
+
+var bottomWall5 : ^Rectangle
+new bottomWall5
+bottomWall5 -> setRectangle (108, 36, 8, 32)
+
+var bottomWall6 : ^Rectangle
+new bottomWall6
+bottomWall6 -> setRectangle (84, 60, 56, 8)
+
+var bottomWall7 : ^Rectangle
+new bottomWall7
+bottomWall7 -> setRectangle (60, 36, 8, 32)
+
+var bottomWall8 : ^Rectangle
+new bottomWall8
+bottomWall8 -> setRectangle (156, 36, 8, 32)
+
+var bottomWall9 : ^Rectangle
+new bottomWall9
+bottomWall9 -> setRectangle (0, 60, 20, 8)
+
+var bottomWall10 : ^Rectangle
+new bottomWall10
+bottomWall10 -> setRectangle (204, 60, 20, 8)
+
+var bottomWall11 : ^Rectangle
+new bottomWall11
+bottomWall11 -> setRectangle (60, 84, 32, 8)
+
+var bottomWall12 : ^Rectangle
+new bottomWall12
+bottomWall12 -> setRectangle (132, 84, 32, 8)
+
+var bottomWall13 : ^Rectangle
+new bottomWall13
+bottomWall13 -> setRectangle (108, 84, 8, 32)
+
+var bottomWall14 : ^Rectangle
+new bottomWall14
+bottomWall14 -> setRectangle (84, 108, 56, 8)
+
+var leftWall1 : ^Rectangle
+new leftWall1
+leftWall1 -> setRectangle (0, 108, 44, 32)
+
+var leftWall2 : ^Rectangle
+new leftWall2
+leftWall2 -> setRectangle (36, 60, 8, 32)
+
+var rightWall1 : ^Rectangle
+new rightWall1
+rightWall1 -> setRectangle (180, 108, 44, 32)
+
+var rightWall2 : ^Rectangle
+new rightWall2
+rightWall2 -> setRectangle (180, 60, 8, 32)
+
+var leftWall3 : ^Rectangle
+new leftWall3
+leftWall3 -> setRectangle (20, 84, 24, 8)
+
+var rightWall3 : ^Rectangle
+new rightWall3
+rightWall3 -> setRectangle (180, 84, 24, 8)
+
+var walls : array 0 .. 20 of ^Rectangle
+walls (0) := bottomWall0
+walls (1) := bottomWall1
+walls (2) := bottomWall2
+walls (3) := bottomWall3
+walls (4) := bottomWall4
+walls (5) := bottomWall5
+walls (6) := bottomWall6
+walls (7) := bottomWall7
+walls (8) := bottomWall8
+walls (9) := bottomWall9
+walls (10) := bottomWall10
+walls (11) := bottomWall11
+walls (12) := bottomWall12
+walls (13) := bottomWall13
+walls (14) := bottomWall14
+walls (15) := leftWall1
+walls (16) := leftWall2
+walls (17) := rightWall1
+walls (18) := rightWall2
+walls (19) := leftWall3
+walls (20) := rightWall3
 
 
 % The main gameloop
 loop
     currentTime := Time.Elapsed
-
-    isTouched := User -> isTouching (Ox)
 
     if (currentTime > lastTick + tickInterval) then
 	if inGame = true then
