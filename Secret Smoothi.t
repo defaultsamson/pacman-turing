@@ -28,13 +28,15 @@ var inGame := false % Defaults to Main Menu
 
 var score := 0
 
-const numberOfOptions := 3
-var optionSelected := 1
-
 type Direction : enum (up, down, left, right, none)
 
 % Loads all the sprites
 const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
+const iTitle : int := Pic.Scale (Pic.FileNew ("pacman/title.bmp"), maxx, maxy)
+
+var iTextCredit : array 0 .. 1 of int
+iTextCredit (0) := Pic.Scale (Pic.FileNew ("pacman/text_credit1.bmp"), 142, 14)
+iTextCredit (1) := Pic.Scale (Pic.FileNew ("pacman/text_credit2.bmp"), 142, 14)
 
 var iPacmanLeft : array 0 .. 3 of int
 iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
@@ -125,7 +127,6 @@ var iInkyUp : array 0 .. 1 of int
 iInkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/inky_up1.bmp"), 32, 32)
 iInkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/inky_up2.bmp"), 32, 32)
 
-
 var iPinkyLeft : array 0 .. 1 of int
 iPinkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pinky_side1.bmp"), 32, 32)
 iPinkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/pinky_side2.bmp"), 32, 32)
@@ -141,6 +142,11 @@ iPinkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pinky_side2.bmp")
 var iPinkyUp : array 0 .. 1 of int
 iPinkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/pinky_up1.bmp"), 32, 32)
 iPinkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/pinky_up2.bmp"), 32, 32)
+
+var iScaredGhost : array 0 .. 1 of int
+iScaredGhost (0) := Pic.Scale (Pic.FileNew ("pacman/scared_ghost1.bmp"), 32, 32)
+iScaredGhost (1) := Pic.Scale (Pic.FileNew ("pacman/scared_ghost2.bmp"), 32, 32)
+
 
 var iLargePellet : array 0 .. 1 of int
 iLargePellet (0) := Pic.Scale (Pic.FileNew ("pacman/pellet_large1.bmp"), 16, 16)
@@ -271,6 +277,96 @@ class FrameHolder
 	end for
     end setFrames
 end FrameHolder
+
+class AnimationRectangle
+    import Rectangle, FrameHolder
+    %% This tells us what can be used outside the class
+    %% if not listed here it cannot be used outside the class
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, autoCollisionMove
+
+    var rec : ^Rectangle
+    new rec
+
+    var currentFrameTrack := 0
+
+    var frameTrack : ^FrameHolder
+    new frameTrack
+    
+    var spriteOffsetX := 0
+    var spriteOffsetY := 0
+
+    var framesPassed := 0
+    var currentFrame := 0
+    var ticksPerFrame := 0
+
+    % tpf = ticks per frame. The amount of render ticks required to pass before the sprite changes.
+    proc setFrames (newFrames : array 0 .. * of int, tpf, spriteOffX, spriteOffY : int)
+	ticksPerFrame := tpf
+
+	spriteOffsetX := spriteOffX
+	spriteOffsetY := spriteOffY
+
+	frameTrack -> setFrames (newFrames)
+    end setFrames
+
+    proc setRectangle (newX, newY, newWidth, newHeight : int)
+	rec -> setRectangle (newX, newY, newWidth, newHeight)
+    end setRectangle
+
+    fcn isTouching (rect : ^Rectangle) : boolean
+	result rec -> isTouching (rect)
+    end isTouching
+
+    proc setPosition (xPos, yPos : int)
+	rec -> setPosition (xPos, yPos)
+    end setPosition
+
+    fcn x : int
+	result rec -> x
+    end x
+
+    fcn y : int
+	result rec -> y
+    end y
+
+    fcn width : int
+	result rec -> width
+    end width
+
+    fcn height : int
+	result rec -> height
+    end height
+
+    fcn collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
+	result rec -> collisionMove (xOff, yOff, rects)
+    end collisionMove
+
+    fcn autoCollisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
+	result rec -> autoCollisionMove (xOff, yOff, rects)
+    end autoCollisionMove
+
+    proc move (xOff, yOff : int)
+	rec -> move (xOff, yOff)
+    end move
+
+    proc draw
+	framesPassed := framesPassed + 1
+
+	if framesPassed >= ticksPerFrame then
+	    framesPassed := 0
+	    currentFrame := currentFrame + 1
+
+	    if currentFrame > frameTrack -> framesLength then
+		currentFrame := 0
+	    end if
+	end if
+
+	Pic.Draw (frameTrack -> frames (currentFrame), (x * 2) + spriteOffsetX, (y * 2) + spriteOffsetY, picUnderMerge)
+
+	rec -> draw (false)
+    end draw
+
+end AnimationRectangle
 
 
 class SpriteRectangle
@@ -1162,7 +1258,7 @@ for i : 0 .. 3 % Right Column top
     new newPellet
     newPellet -> setPellet (123, 227 + (8 * i), false)
 
-    
+
     pellets (totalPellets) := newPellet
     totalPellets := totalPellets + 1
 end for
@@ -1181,7 +1277,7 @@ for i : 0 .. 1 % Right Column top
     new newPellet
     newPellet -> setPellet (211, 243 + (8 * i), false)
 
-    
+
     pellets (totalPellets) := newPellet
     totalPellets := totalPellets + 1
 end for
@@ -1191,10 +1287,61 @@ for i : 0 .. 3 % Right Column top
     new newPellet
     newPellet -> setPellet (211, 203 + (8 * i), false)
 
-    
+
     pellets (totalPellets) := newPellet
     totalPellets := totalPellets + 1
 end for
+
+
+var titleCredits : ^AnimationRectangle
+new titleCredits
+titleCredits -> setRectangle (17, 1, 71, 7)
+titleCredits -> setFrames (iTextCredit, 38, 0, 0)
+
+
+
+
+
+
+% Draws the splash screen
+drawfillbox (0, 0, maxx, maxy, black)
+
+Font.Draw ("PACMAN", xMenuOff, yMenuOff, Font.New (typeface + ":121:bold"), white)
+Font.Draw ("CODED BY SAMSON CLOSE", xMenuOff + 4, yMenuOff - 20, Font.New (typeface + ":8:bold"), white)
+View.Update
+
+loop
+    currentTime := Time.Elapsed
+    exit when currentTime >= 2000
+end loop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 % The main gameloop
@@ -1371,46 +1518,29 @@ body proc drawMenuScreen
     % Draws the background
     drawfillbox (0, 0, maxx, maxy, black)
 
-    % Draws main text
-    Font.Draw ("PACMAN", xMenuOff, yMenuOff, Font.New (typeface + ":121:bold"), white)
-    Font.Draw ("CODED BY SAMSON CLOSE", xMenuOff + 4, yMenuOff - 20, Font.New (typeface + ":8:bold"), white)
-    Font.Draw ("START", xMenuOff + 2, yMenuOff - 60, Font.New (typeface + ":32:bold"), white)
-    Font.Draw ("HELP", xMenuOff + 2, yMenuOff - 100, Font.New (typeface + ":32:bold"), white)
-    Font.Draw ("OPTIONS", xMenuOff + 2, yMenuOff - 140, Font.New (typeface + ":32:bold"), white)
+    Pic.Draw (iTitle, 0, 0, picUnderMerge)
+    
+    Pic.Draw (iLargePellet (0), 80 * 2, 72 * 2, picUnderMerge)
+    Pic.Draw (iSmallPellet (0), (83 * 2) - 6, (91 * 2) - 6, picUnderMerge)
+    
+    Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
+    Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
+    Pic.Draw (iInkyRight (0), (33 * 2) - 2, (174 * 2) - 2, picUnderMerge)
+    Pic.Draw (iClydeRight (0), (33 * 2) - 2, (150 * 2) - 2, picUnderMerge)
+    
+    Pic.Draw (iScaredGhost (0), (89 * 2) - 2, (117 * 2) - 2, picUnderMerge)
+    Pic.Draw (iScaredGhost (0), (104 * 2) - 1, (117 * 2) - 2, picUnderMerge)
+    Pic.Draw (iScaredGhost (0), (120 * 2) - 2, (117 * 2) - 2, picUnderMerge)
+    
+    titleCredits -> draw
 
-    % Draws all the option values with the font
-    var font := Font.New (typeface + ":22:bold")
-    % The offset for the dot
-    var xOff := 0
-    var yOff := 0
-
-    % Does for each option
-    if optionSelected = 1 then
-	xOff := -14
-	yOff := -46
-    elsif optionSelected = 2 then
-	xOff := -14
-	yOff := -86
-    elsif optionSelected = 3 then
-	xOff := -14
-	yOff := -126
-    end if
-
-    % Right half
-    Draw.Line (xMenuOff + xOff, yMenuOff + yOff + 8, xMenuOff + xOff + 8, yMenuOff + yOff, white)
-    Draw.Line (xMenuOff + xOff + 8, yMenuOff + yOff, xMenuOff + xOff, yMenuOff + yOff - 8, white)
-
-    % Left Half
-    Draw.Line (xMenuOff + xOff, yMenuOff + yOff + 8, xMenuOff + xOff - 8, yMenuOff + yOff, white)
-    Draw.Line (xMenuOff + xOff - 8, yMenuOff + yOff, xMenuOff + xOff, yMenuOff + yOff - 8, white)
-
-    % Fill
-    Draw.Fill (xMenuOff + xOff, yMenuOff + yOff, white, white)
 end drawMenuScreen
 
-% Tracks the last value for the up and down keys. Used for filtering input.
+% Tracks the last value (used for filtering input)
 var upLast := false
 var downLast := false
+var leftLast := false
+var rightLast := false
 
 % Detects when players hit a key on the menu screen
 body proc menuInput
@@ -1419,29 +1549,35 @@ body proc menuInput
 
     var keyUp := chars (KEY_UP_ARROW)
     var keyDown := chars (KEY_DOWN_ARROW)
+    var keyLeft := chars (KEY_LEFT_ARROW)
+    var keyRight := chars (KEY_RIGHT_ARROW)
 
-    if keyUp and not upLast and optionSelected > 1 then
-	optionSelected -= 1
+    if keyUp and not upLast then
+
     end if
 
-    if keyDown and not downLast and optionSelected < numberOfOptions then
-	optionSelected += 1
+    if keyDown and not downLast then
+
+    end if
+
+    if keyLeft and not leftLast then
+
+    end if
+
+    if keyRight and not rightLast then
+
     end if
 
     if chars (KEY_ENTER) then
-	if optionSelected = 1 then
-	    inGame := true
-	    reset
-	elsif optionSelected = 2 then
-
-	elsif optionSelected = 3 then
-
-	end if
+	inGame := true
+	reset
     end if
 
     % Updates the filtering variables (MUST BE LAST)
     upLast := keyUp
     downLast := keyDown
+    leftLast := keyLeft
+    rightLast := keyRight
 end menuInput
 
 % Draws a number (used to draw the score)
