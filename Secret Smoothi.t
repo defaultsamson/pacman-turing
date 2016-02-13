@@ -5,9 +5,11 @@ forward proc drawPlayScreen
 forward proc drawNumber (x : int, y : int, number : int, anchor : int)
 forward proc gameInput
 forward proc drawMenuScreen
+forward proc addScore (score : int)
 forward proc menuInput
 forward proc gameMath
 forward proc reset
+forward proc setupNextLevel
 forward proc updateAI
 
 const debug := false
@@ -23,6 +25,8 @@ var currentTime := 0
 var lastTick := 0
 
 var inGame := false % Defaults to Main Menu
+
+var score := 0
 
 const numberOfOptions := 3
 var optionSelected := 1
@@ -138,6 +142,13 @@ var iPinkyUp : array 0 .. 1 of int
 iPinkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/pinky_up1.bmp"), 32, 32)
 iPinkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/pinky_up2.bmp"), 32, 32)
 
+var iLargePellet : array 0 .. 1 of int
+iLargePellet (0) := Pic.Scale (Pic.FileNew ("pacman/pellet_large1.bmp"), 16, 16)
+iLargePellet (1) := Pic.Scale (Pic.FileNew ("pacman/pellet_large2.bmp"), 16, 16)
+
+var iSmallPellet : array 0 .. 0 of int
+iSmallPellet (0) := Pic.Scale (Pic.FileNew ("pacman/pellet_small.bmp"), 16, 16)
+
 View.SetTransparentColor (black)
 
 
@@ -228,14 +239,17 @@ class Rectangle
 	result true
     end autoCollisionMove
 
-    proc draw
+    proc draw (fill : boolean)
 	if debug then
-	    Draw.Line (x * 2, y * 2, x * 2, (y + height) * 2, white)
-	    Draw.Line (x * 2, (y + height) * 2, (x + width) * 2, (y + height) * 2, white)
-	    Draw.Line ((x + width) * 2, (y + height) * 2, (x + width) * 2, y * 2, white)
-	    Draw.Line ((x + width) * 2, y * 2, x * 2, y * 2, white)
+	    if fill then
+		drawfillbox (x * 2, y * 2, (x + width) * 2, (y + height) * 2, white)
+	    else
+		Draw.Line (x * 2, y * 2, x * 2, (y + height) * 2, white)
+		Draw.Line (x * 2, (y + height) * 2, (x + width) * 2, (y + height) * 2, white)
+		Draw.Line ((x + width) * 2, (y + height) * 2, (x + width) * 2, y * 2, white)
+		Draw.Line ((x + width) * 2, y * 2, x * 2, y * 2, white)
+	    end if
 	end if
-	%drawfillbox (x * 2, y * 2, (x + width) * 2, (y + height) * 2, white)
     end draw
 
 end Rectangle
@@ -365,15 +379,137 @@ class SpriteRectangle
 
 	Pic.Draw (frameTracks (currentFrameTrack) -> frames (currentFrame), (x * 2) + spriteOffsetX, (y * 2) + spriteOffsetY, picUnderMerge)
 
-	rec -> draw
+	rec -> draw (false)
     end draw
 
 end SpriteRectangle
 
+class Pellet
+    import Rectangle, Direction, FrameHolder, iLargePellet, iSmallPellet, addScore, SpriteRectangle
+    %% This tells us what can be used outside the class
+    %% if not listed here it cannot be used outside the class
+    export setPellet, x, y, width, height, isTouching, draw, setPosition, setFrames, update
+
+    var rec : ^Rectangle
+    new rec
+
+    var isLargePellet := false
+    var isEaten := false
+    var scoreValue := 0
+
+    var currentFrameTrack := 0
+
+    var frameTracks : array 0 .. 1 of ^FrameHolder
+    new frameTracks (0)
+    new frameTracks (1)
+
+    var spriteOffsetX := 0
+    var spriteOffsetY := 0
+
+    var framesPassed := 0
+    var currentFrame := 0
+    var ticksPerFrame := 0
+
+    % tpf = ticks per frame. The amount of render ticks required to pass before the sprite changes.
+    proc setFrames (tpf : int)
+	ticksPerFrame := tpf
+
+	if not isLargePellet then
+	    spriteOffsetX := -6
+	    spriteOffsetY := -6
+	end if
+
+	frameTracks (0) -> setFrames (iSmallPellet)
+
+	frameTracks (1) -> setFrames (iLargePellet)
+    end setFrames
+
+    proc setPellet (newX, newY : int, largePellet : boolean)
+	isLargePellet := largePellet
+
+	var newHeight, newWidth, returnX, returnY : int
+
+	if isLargePellet then
+	    newHeight := 8
+	    newWidth := 8
+	    returnX := newX
+	    returnY := newY
+	    currentFrameTrack := 1
+	    scoreValue := 100
+	else
+	    newHeight := 2
+	    newWidth := 2
+	    returnX := newX
+	    returnY := newY
+	    currentFrameTrack := 0
+	    scoreValue := 50
+	    setFrames (0)
+	end if
+	rec -> setRectangle (returnX, returnY, newWidth, newHeight)
+    end setPellet
+
+    fcn isTouching (rect : ^Rectangle) : boolean
+	result rec -> isTouching (rect)
+    end isTouching
+
+    proc update (user : ^Rectangle)
+	if user -> isTouching (rec) and not isEaten then
+	    isEaten := true
+	    addScore (scoreValue)
+	end if
+    end update
+
+    proc setPosition (xPos, yPos : int)
+	rec -> setPosition (xPos, yPos)
+    end setPosition
+
+    proc reset
+	isEaten := false
+    end reset
+
+    fcn x : int
+	result rec -> x
+    end x
+
+    fcn y : int
+	result rec -> y
+    end y
+
+    fcn width : int
+	result rec -> width
+    end width
+
+    fcn height : int
+	result rec -> height
+    end height
+
+    proc draw
+	if not isEaten then
+	    if not isLargePellet then
+		Pic.Draw (frameTracks (currentFrameTrack) -> frames (currentFrame), (x * 2) + spriteOffsetX, (y * 2) + spriteOffsetY, picUnderMerge)
+	    else
+		framesPassed := framesPassed + 1
+
+		if framesPassed >= ticksPerFrame then
+		    framesPassed := 0
+		    currentFrame := currentFrame + 1
+
+		    if currentFrame > frameTracks (currentFrameTrack) -> framesLength then
+			currentFrame := 0
+		    end if
+		end if
+		Pic.Draw (frameTracks (currentFrameTrack) -> frames (currentFrame), (x * 2) + spriteOffsetX, (y * 2) + spriteOffsetY, picUnderMerge)
+	    end if
+	    rec -> draw (false)
+	end if
+    end draw
+
+end Pellet
+
 var User : ^SpriteRectangle
 new User
 
-User -> setRectangle (104, 116, 16, 16)
+User -> setRectangle (104, 68, 16, 16)
 User -> setFrames (iPacmanUp, iPacmanDown, iPacmanLeft, iPacmanRight, 5, 1, 0)
 
 var bottomWall0 : ^Rectangle
@@ -616,6 +752,31 @@ var rightTelePad : ^Rectangle
 new rightTelePad
 rightTelePad -> setRectangle (224 + 12, 140, 0, 16)
 
+/*
+ var pellet1 : ^Pellet
+ new pellet1
+ pellet1 -> setPellet (11, 27, false)
+
+ var pellet2 : ^Pellet
+ new pellet2
+ pellet2 -> setPellet (19, 27, false)
+
+ var pellet3 : ^Pellet
+ new pellet3
+ pellet3 -> setPellet (27, 27, false)
+ */
+var pellets : array 0 .. 25 of ^Pellet
+%pellets (0) := pellet1
+%pellets (1) := pellet2
+%pellets (2) := pellet3
+
+for i : 0 .. 25
+    var newPellet : ^Pellet
+    new newPellet
+    newPellet -> setPellet (11 + (8 * i), 27, false)
+    
+    pellets (i) := newPellet
+end for
 
 % The main gameloop
 loop
@@ -660,6 +821,14 @@ body proc gameMath
 	User -> setPosition (-11, 140)
     end if
 
+    var playerPelletRect : ^Rectangle
+    new playerPelletRect
+    playerPelletRect -> setRectangle(User -> x + 6, User -> y + 6, User -> width - 12, User -> height - 12)
+    
+    for i : 0 .. upper (pellets)
+	pellets (i) -> update (playerPelletRect)
+    end for
+
 end gameMath
 
 % Draws the screen
@@ -672,7 +841,11 @@ body proc drawPlayScreen
     User -> draw
 
     for i : 0 .. upper (walls)
-	walls (i) -> draw
+	walls (i) -> draw (false)
+    end for
+
+    for i : 0 .. upper (pellets)
+	pellets (i) -> draw
     end for
 end drawPlayScreen
 
@@ -752,10 +925,19 @@ body proc gameInput
 end gameInput
 
 
+body proc addScore
+
+end addScore
+
 % Resets the in game values
 body proc reset
-
+    setupNextLevel
+    score := 0
 end reset
+
+body proc setupNextLevel
+
+end setupNextLevel
 
 %Draws the menu screen
 body proc drawMenuScreen
