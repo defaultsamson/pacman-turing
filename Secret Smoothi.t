@@ -137,10 +137,9 @@ View.SetTransparentColor (black)
 
 
 class Rectangle
-
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove
 
     var x, y, width, height : int
 
@@ -151,9 +150,14 @@ class Rectangle
 	height := newHeight
     end setRectangle
 
+
     fcn isTouching (rect : ^Rectangle) : boolean
 	result (x < rect -> x + rect -> width and x + width > rect -> x and y < rect -> y + rect -> height and y + height > rect -> y)
     end isTouching
+
+    fcn intersects (inX, inY : int) : boolean
+	result (inX > x and inX < x + width and inY > y and inY < inY + height)
+    end intersects
 
     proc setPosition (xPos, yPos : int)
 	x := xPos
@@ -164,6 +168,19 @@ class Rectangle
 	x := x + xOff
 	y := y + yOff
     end move
+
+    proc collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle)
+	move (xOff, yOff)
+
+	for i : 0 .. upper (rects)
+	    if isTouching (rects (i)) then
+		move (-xOff, -yOff)
+		return
+	    end if
+	end for
+    end collisionMove
+
+
 
     proc draw
 	drawfillbox (x * 2, y * 2, (x + width) * 2, (y + height) * 2, white)
@@ -176,7 +193,7 @@ class SpriteRectangle
     import Rectangle
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setFrames
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove
 
     var rec : ^Rectangle
     new rec
@@ -232,6 +249,10 @@ class SpriteRectangle
 	result rec -> height
     end height
 
+    proc collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle)
+	rec -> collisionMove (xOff, yOff, rects)
+    end collisionMove
+
     proc move (xOff, yOff : int)
 	rec -> move (xOff, yOff)
     end move
@@ -249,6 +270,8 @@ class SpriteRectangle
 	end if
 
 	Pic.Draw (frames (currentFrame), x * 2, y * 2, picUnderMerge)
+
+	rec -> draw
     end draw
 
 end SpriteRectangle
@@ -256,14 +279,18 @@ end SpriteRectangle
 var User : ^SpriteRectangle
 new User
 
-User -> setRectangle (100, 100, 50, 50)
+User -> setRectangle (200, 100, 16, 16)
 User -> setFrames (iPacmanUp, 10, 0, 0)
 
 var Ox : ^Rectangle
 new Ox
 
-Ox -> setRectangle (5, 4, 100, 200)
+Ox -> setRectangle (50, 60, 10, 20)
 
+
+var walls : array 0 .. 1 of ^Rectangle
+walls (0) := Ox
+walls (1) := Ox
 
 var isTouched := false
 
@@ -271,7 +298,9 @@ var isTouched := false
 % The main gameloop
 loop
     currentTime := Time.Elapsed
-    
+
+    isTouched := User -> isTouching (Ox)
+
     if (currentTime > lastTick + tickInterval) then
 	if inGame = true then
 
@@ -309,6 +338,10 @@ body proc drawPlayScreen
     Pic.Draw (iMap, 0, 0, picUnderMerge)
 
     User -> draw
+
+    for i : 0 .. upper (walls)
+	walls (i) -> draw
+    end for
 end drawPlayScreen
 
 % Detects when players presses the key for in-game
@@ -317,19 +350,19 @@ body proc gameInput
     Input.KeyDown (chars)
 
     if (chars (KEY_UP_ARROW)) then
-	User -> move(0, 1)
+	User -> collisionMove (0, 1, walls)
     end if
 
     if (chars (KEY_DOWN_ARROW)) then
-	User -> move(0, -1)
+	User -> collisionMove (0, -1, walls)
     end if
 
     if (chars (KEY_RIGHT_ARROW)) then
-	User -> move(1, 0)
+	User -> collisionMove (1, 0, walls)
     end if
 
     if (chars (KEY_LEFT_ARROW)) then
-	User -> move(-1, 0)
+	User -> collisionMove (-1, 0, walls)
     end if
 
 
