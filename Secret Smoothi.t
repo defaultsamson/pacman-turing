@@ -26,10 +26,10 @@ var inGame := false % Defaults to Main Menu
 const numberOfOptions := 3
 var optionSelected := 1
 
-type Direction : enum (up, down, left, right)
+type Direction : enum (up, down, left, right, none)
 
 % Loads all the sprites
-const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx + 1, maxy + 2)
+const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
 
 var iPacmanLeft : array 0 .. 3 of int
 iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
@@ -38,16 +38,16 @@ iPacmanLeft (2) := Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32)
 iPacmanLeft (3) := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
 
 var iPacmanDown : array 0 .. 3 of int
-iPacmanDown (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 90, 16, 16)
-iPacmanDown (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 90, 16, 16)
-iPacmanDown (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 90, 16, 16)
-iPacmanDown (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 90, 16, 16)
+iPacmanDown (0) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (1) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (2) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (3) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16))
 
 var iPacmanRight : array 0 .. 3 of int
-iPacmanRight (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 180, 16, 16)
-iPacmanRight (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 180, 16, 16)
-iPacmanRight (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 180, 16, 16)
-iPacmanRight (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 180, 16, 16)
+iPacmanRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32))
+iPacmanRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32))
+iPacmanRight (2) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32))
+iPacmanRight (3) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32))
 
 var iPacmanUp : array 0 .. 3 of int
 iPacmanUp (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 270, 16, 16)
@@ -143,12 +143,14 @@ View.SetTransparentColor (black)
 
 
 class Rectangle
-    import debug
+    import debug, Direction
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove, dir, autoCollisionMove
 
     var x, y, width, height : int
+
+    var dir := Direction.none
 
     proc setRectangle (newX, newY, newWidth, newHeight : int)
 	x := newX
@@ -176,20 +178,54 @@ class Rectangle
 	y := y + yOff
     end move
 
+    % Use for when the player uses the keys to try and move
     fcn collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
 	move (xOff, yOff)
 
 	for i : 0 .. upper (rects)
 	    if isTouching (rects (i)) then
 		move (-xOff, -yOff)
+
+		if xOff = 1 and yOff = 0 and dir = Direction.right then
+		    dir := Direction.none
+		elsif xOff = -1 and yOff = 0 and dir = Direction.left then
+		    dir := Direction.none
+		elsif xOff = 0 and yOff = 1 and dir = Direction.up then
+		    dir := Direction.none
+		elsif xOff = 0 and yOff = -1 and dir = Direction.down then
+		    dir := Direction.none
+		end if
+
 		result false
 	    end if
 	end for
 
+	if xOff = 1 and yOff = 0 then
+	    dir := Direction.right
+	elsif xOff = -1 and yOff = 0 then
+	    dir := Direction.left
+	elsif xOff = 0 and yOff = 1 then
+	    dir := Direction.up
+	elsif xOff = 0 and yOff = -1 then
+	    dir := Direction.down
+	end if
+
 	result true
     end collisionMove
 
+    % Only used for when the game automatically moves the player
+    fcn autoCollisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
+	move (xOff, yOff)
 
+	for i : 0 .. upper (rects)
+	    if isTouching (rects (i)) then
+		move (-xOff, -yOff)
+		dir := Direction.none
+		result false
+	    end if
+	end for
+	result true
+    end autoCollisionMove
 
     proc draw
 	if debug then
@@ -203,18 +239,37 @@ class Rectangle
 
 end Rectangle
 
+class FrameHolder
+    export frames, framesLength, setFrames
+
+    var frames : array 0 .. 15 of int
+    var framesLength := 0
+
+    proc setFrames (inFrames : array 0 .. * of int)
+	framesLength := upper (inFrames)
+	for i : 0 .. framesLength
+	    frames (i) := inFrames (i)
+	end for
+    end setFrames
+end FrameHolder
+
 
 class SpriteRectangle
-    import Rectangle
+    import Rectangle, Direction, FrameHolder
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, direction, autoCollisionMove
 
     var rec : ^Rectangle
     new rec
 
-    var frames : array 0 .. 15 of int
-    var framesLength := 0
+    var currentFrameTrack := 0
+
+    var frameTracks : array 0 .. 3 of ^FrameHolder
+    new frameTracks (0)
+    new frameTracks (1)
+    new frameTracks (2)
+    new frameTracks (3)
 
     var spriteOffsetX := 0
     var spriteOffsetY := 0
@@ -224,16 +279,19 @@ class SpriteRectangle
     var ticksPerFrame := 0
 
     % tpf = ticks per frame. The amount of render ticks required to pass before the sprite changes.
-    proc setFrames (a : array 0 .. * of int, tpf, spriteOffX, spriteOffY : int)
+    proc setFrames (up : array 0 .. * of int, down : array 0 .. * of int, left : array 0 .. * of int, right : array 0 .. * of int, tpf, spriteOffX, spriteOffY : int)
 	ticksPerFrame := tpf
-	framesLength := upper (a)
 
 	spriteOffsetX := spriteOffX
 	spriteOffsetY := spriteOffY
 
-	for i : 0 .. framesLength
-	    frames (i) := a (i)
-	end for
+	frameTracks (0) -> setFrames (up)
+
+	frameTracks (1) -> setFrames (down)
+
+	frameTracks (2) -> setFrames (left)
+
+	frameTracks (3) -> setFrames (right)
     end setFrames
 
     proc setRectangle (newX, newY, newWidth, newHeight : int)
@@ -268,23 +326,43 @@ class SpriteRectangle
 	result rec -> collisionMove (xOff, yOff, rects)
     end collisionMove
 
+    fcn autoCollisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
+	result rec -> autoCollisionMove (xOff, yOff, rects)
+    end autoCollisionMove
+
     proc move (xOff, yOff : int)
 	rec -> move (xOff, yOff)
     end move
 
+    fcn direction : Direction
+	result rec -> dir
+    end direction
+
     proc draw
 	framesPassed := framesPassed + 1
 
-	if framesPassed >= ticksPerFrame then
+	if rec -> dir = Direction.none then
+	    currentFrame := 1
+	elsif framesPassed >= ticksPerFrame then
 	    framesPassed := 0
 	    currentFrame := currentFrame + 1
 
-	    if currentFrame > framesLength then
+	    if currentFrame > frameTracks (currentFrameTrack) -> framesLength then
 		currentFrame := 0
 	    end if
 	end if
 
-	Pic.Draw (frames (currentFrame), x * 2, y * 2, picUnderMerge)
+	if rec -> dir = Direction.up then
+	    currentFrameTrack := 0
+	elsif rec -> dir = Direction.down then
+	    currentFrameTrack := 1
+	elsif rec -> dir = Direction.left then
+	    currentFrameTrack := 2
+	elsif rec -> dir = Direction.right then
+	    currentFrameTrack := 3
+	end if
+
+	Pic.Draw (frameTracks (currentFrameTrack) -> frames (currentFrame), (x * 2) + spriteOffsetX, (y * 2) + spriteOffsetY, picUnderMerge)
 
 	rec -> draw
     end draw
@@ -295,7 +373,7 @@ var User : ^SpriteRectangle
 new User
 
 User -> setRectangle (104, 116, 16, 16)
-User -> setFrames (iPacmanUp, 5, 0, 0)
+User -> setFrames (iPacmanUp, iPacmanDown, iPacmanLeft, iPacmanRight, 5, 1, 0)
 
 var bottomWall0 : ^Rectangle
 new bottomWall0
@@ -592,8 +670,6 @@ body proc gameInput
 
     if (chars (KEY_UP_ARROW)) then
 	if User -> collisionMove (0, 1, walls) then
-	    autoUp := true
-	    autoDown := false
 	    autoUpOverride := true
 	end if
     else
@@ -602,8 +678,6 @@ body proc gameInput
 
     if (chars (KEY_DOWN_ARROW)) then
 	if User -> collisionMove (0, -1, walls) then
-	    autoDown := true
-	    autoUp := false
 	    autoDownOverride := true
 	end if
     else
@@ -612,8 +686,6 @@ body proc gameInput
 
     if (chars (KEY_RIGHT_ARROW)) then
 	if User -> collisionMove (1, 0, walls) then
-	    autoRight := true
-	    autoLeft := false
 	    autoRightOverride := true
 	end if
     else
@@ -622,28 +694,26 @@ body proc gameInput
 
     if (chars (KEY_LEFT_ARROW)) then
 	if User -> collisionMove (-1, 0, walls) then
-	    autoLeft := true
-	    autoRight := false
 	    autoLeftOverride := true
 	end if
     else
 	autoLeftOverride := false
     end if
 
-    if autoRight and not autoRightOverride then
-	if not User -> collisionMove (1, 0, walls) then
+    if User -> direction = Direction.right and not autoRightOverride then
+	if not User -> autoCollisionMove (1, 0, walls) then
 	    autoRight := false
 	end if
-    elsif autoLeft and not autoLeftOverride then
-	if not User -> collisionMove (-1, 0, walls) then
+    elsif User -> direction = Direction.left and not autoLeftOverride then
+	if not User -> autoCollisionMove (-1, 0, walls) then
 	    autoLeft := false
 	end if
-    elsif autoUp and not autoUpOverride then
-	if not User -> collisionMove (0, 1, walls) then
+    elsif User -> direction = Direction.up and not autoUpOverride then
+	if not User -> autoCollisionMove (0, 1, walls) then
 	    autoUp := false
 	end if
-    elsif autoDown and not autoDownOverride then
-	if not User -> collisionMove (0, -1, walls) then
+    elsif User -> direction = Direction.down and not autoDownOverride then
+	if not User -> autoCollisionMove (0, -1, walls) then
 	    autoDown := false
 	end if
     end if
@@ -680,8 +750,6 @@ body proc drawMenuScreen
 
     % Draws all the option values with the font
     var font := Font.New (typeface + ":22:bold")
-
-
     % The offset for the dot
     var xOff := 0
     var yOff := 0
