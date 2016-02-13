@@ -9,6 +9,8 @@ forward proc menuInput
 forward proc reset
 forward proc updateAI
 
+const debug := false
+
 const typeface := "Fixedsys"
 const halfx := floor (maxx / 2)
 const halfy := floor (maxy / 2)
@@ -27,7 +29,7 @@ var optionSelected := 1
 type Direction : enum (up, down, left, right)
 
 % Loads all the sprites
-const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
+const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx + 1, maxy + 2)
 
 var iPacmanLeft : array 0 .. 3 of int
 iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
@@ -141,6 +143,7 @@ View.SetTransparentColor (black)
 
 
 class Rectangle
+    import debug
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
     export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove
@@ -173,25 +176,28 @@ class Rectangle
 	y := y + yOff
     end move
 
-    proc collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle)
+    fcn collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
 	move (xOff, yOff)
 
 	for i : 0 .. upper (rects)
 	    if isTouching (rects (i)) then
 		move (-xOff, -yOff)
-		return
+		result false
 	    end if
 	end for
+
+	result true
     end collisionMove
 
 
 
     proc draw
-	Draw.Line (x * 2, y * 2, x * 2, (y + height) * 2, white)
-	Draw.Line (x * 2, (y + height) * 2, (x + width) * 2, (y + height) * 2, white)
-	Draw.Line ((x + width) * 2, (y + height) * 2, (x + width) * 2, y * 2, white)
-	Draw.Line ((x + width) * 2, y * 2, x * 2, y * 2, white)
-
+	if debug then
+	    Draw.Line (x * 2, y * 2, x * 2, (y + height) * 2, white)
+	    Draw.Line (x * 2, (y + height) * 2, (x + width) * 2, (y + height) * 2, white)
+	    Draw.Line ((x + width) * 2, (y + height) * 2, (x + width) * 2, y * 2, white)
+	    Draw.Line ((x + width) * 2, y * 2, x * 2, y * 2, white)
+	end if
 	%drawfillbox (x * 2, y * 2, (x + width) * 2, (y + height) * 2, white)
     end draw
 
@@ -258,8 +264,8 @@ class SpriteRectangle
 	result rec -> height
     end height
 
-    proc collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle)
-	rec -> collisionMove (xOff, yOff, rects)
+    fcn collisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
+	result rec -> collisionMove (xOff, yOff, rects)
     end collisionMove
 
     proc move (xOff, yOff : int)
@@ -288,7 +294,7 @@ end SpriteRectangle
 var User : ^SpriteRectangle
 new User
 
-User -> setRectangle (200, 200, 16, 16)
+User -> setRectangle (104, 116, 16, 16)
 User -> setFrames (iPacmanUp, 5, 0, 0)
 
 var bottomWall0 : ^Rectangle
@@ -297,7 +303,7 @@ bottomWall0 -> setRectangle (0, 16, 224, 4)
 
 var bottomWall1 : ^Rectangle
 new bottomWall1
-bottomWall1 -> setRectangle (0, 16, 4, 248)
+bottomWall1 -> setRectangle (0, 16, 4, 124)
 
 var bottomWall2 : ^Rectangle
 new bottomWall2
@@ -309,7 +315,7 @@ bottomWall3 -> setRectangle (132, 36, 72, 8)
 
 var bottomWall4 : ^Rectangle
 new bottomWall4
-bottomWall4 -> setRectangle (220, 16, 4, 248)
+bottomWall4 -> setRectangle (220, 16, 4, 124)
 
 var bottomWall5 : ^Rectangle
 new bottomWall5
@@ -375,7 +381,107 @@ var rightWall3 : ^Rectangle
 new rightWall3
 rightWall3 -> setRectangle (180, 84, 24, 8)
 
-var walls : array 0 .. 20 of ^Rectangle
+var leftWall4 : ^Rectangle
+new leftWall4
+leftWall4 -> setRectangle (0, 156, 44, 32)
+
+var rightWall4 : ^Rectangle
+new rightWall4
+rightWall4 -> setRectangle (180, 156, 44, 32)
+
+var leftWall5 : ^Rectangle
+new leftWall5
+leftWall5 -> setRectangle (60, 108, 8, 32)
+
+var rightWall5 : ^Rectangle
+new rightWall5
+rightWall5 -> setRectangle (156, 108, 8, 32)
+
+var centerWall1 : ^Rectangle
+new centerWall1
+centerWall1 -> setRectangle (84, 132, 56, 4)
+
+var centerWall2 : ^Rectangle
+new centerWall2
+centerWall2 -> setRectangle (84, 132, 4, 32)
+
+var centerWall3 : ^Rectangle
+new centerWall3
+centerWall3 -> setRectangle (84, 160, 20, 4)
+
+var centerWall4 : ^Rectangle
+new centerWall4
+centerWall4 -> setRectangle (120, 160, 20, 4)
+
+var centerWall5 : ^Rectangle
+new centerWall5
+centerWall5 -> setRectangle (136, 132, 4, 32)
+
+var leftWall6 : ^Rectangle
+new leftWall6
+leftWall6 -> setRectangle (0, 156, 4, 108)
+
+var rightWall6 : ^Rectangle
+new rightWall6
+rightWall6 -> setRectangle (220, 156, 4, 108)
+
+var upperWall1 : ^Rectangle
+new upperWall1
+upperWall1 -> setRectangle (0, 260, 224, 4)
+
+var upperWall2 : ^Rectangle
+new upperWall2
+upperWall2 -> setRectangle (108, 228, 8, 36)
+
+var upperWall3 : ^Rectangle
+new upperWall3
+upperWall3 -> setRectangle (108, 180, 8, 32)
+
+var upperWall4 : ^Rectangle
+new upperWall4
+upperWall4 -> setRectangle (84, 204, 56, 8)
+
+var upperWall5 : ^Rectangle
+new upperWall5
+upperWall5 -> setRectangle (60, 228, 32, 16)
+
+var upperWall6 : ^Rectangle
+new upperWall6
+upperWall6 -> setRectangle (132, 228, 32, 16)
+
+var upperWall7 : ^Rectangle
+new upperWall7
+upperWall7 -> setRectangle (20, 228, 24, 16)
+
+var upperWall8 : ^Rectangle
+new upperWall8
+upperWall8 -> setRectangle (180, 228, 24, 16)
+
+var upperWall9 : ^Rectangle
+new upperWall9
+upperWall9 -> setRectangle (20, 204, 24, 8)
+
+var upperWall10 : ^Rectangle
+new upperWall10
+upperWall10 -> setRectangle (180, 204, 24, 8)
+
+var upperWall11 : ^Rectangle
+new upperWall11
+upperWall11 -> setRectangle (60, 156, 8, 56)
+
+var upperWall12 : ^Rectangle
+new upperWall12
+upperWall12 -> setRectangle (156, 156, 8, 56)
+
+var upperWall13 : ^Rectangle
+new upperWall13
+upperWall13 -> setRectangle (60, 180, 32, 8)
+
+var upperWall14 : ^Rectangle
+new upperWall14
+upperWall14 -> setRectangle (132, 180, 32, 8)
+
+var walls : array 0 .. 45 of ^Rectangle
 walls (0) := bottomWall0
 walls (1) := bottomWall1
 walls (2) := bottomWall2
@@ -397,7 +503,31 @@ walls (17) := rightWall1
 walls (18) := rightWall2
 walls (19) := leftWall3
 walls (20) := rightWall3
-
+walls (21) := leftWall4
+walls (22) := rightWall4
+walls (23) := leftWall5
+walls (24) := rightWall5
+walls (25) := centerWall1
+walls (26) := centerWall2
+walls (27) := centerWall3
+walls (28) := centerWall4
+walls (29) := centerWall5
+walls (30) := leftWall6
+walls (31) := rightWall6
+walls (32) := upperWall1
+walls (33) := upperWall2
+walls (34) := upperWall3
+walls (35) := upperWall4
+walls (36) := upperWall5
+walls (37) := upperWall6
+walls (38) := upperWall7
+walls (39) := upperWall8
+walls (40) := upperWall9
+walls (41) := upperWall10
+walls (42) := upperWall11
+walls (43) := upperWall12
+walls (44) := upperWall13
+walls (45) := upperWall14
 
 % The main gameloop
 loop
@@ -446,27 +576,77 @@ body proc drawPlayScreen
     end for
 end drawPlayScreen
 
+var autoUp := false
+var autoUpOverride := true
+var autoDown := false
+var autoDownOverride := true
+var autoRight := false
+var autoRightOverride := true
+var autoLeft := false
+var autoLeftOverride := true
+
 % Detects when players presses the key for in-game
 body proc gameInput
     var chars : array char of boolean
     Input.KeyDown (chars)
 
     if (chars (KEY_UP_ARROW)) then
-	User -> collisionMove (0, 1, walls)
+	if User -> collisionMove (0, 1, walls) then
+	    autoUp := true
+	    autoDown := false
+	    autoUpOverride := true
+	end if
+    else
+	autoUpOverride := false
     end if
 
     if (chars (KEY_DOWN_ARROW)) then
-	User -> collisionMove (0, -1, walls)
+	if User -> collisionMove (0, -1, walls) then
+	    autoDown := true
+	    autoUp := false
+	    autoDownOverride := true
+	end if
+    else
+	autoDownOverride := false
     end if
 
     if (chars (KEY_RIGHT_ARROW)) then
-	User -> collisionMove (1, 0, walls)
+	if User -> collisionMove (1, 0, walls) then
+	    autoRight := true
+	    autoLeft := false
+	    autoRightOverride := true
+	end if
+    else
+	autoRightOverride := false
     end if
 
     if (chars (KEY_LEFT_ARROW)) then
-	User -> collisionMove (-1, 0, walls)
+	if User -> collisionMove (-1, 0, walls) then
+	    autoLeft := true
+	    autoRight := false
+	    autoLeftOverride := true
+	end if
+    else
+	autoLeftOverride := false
     end if
 
+    if autoRight and not autoRightOverride then
+	if not User -> collisionMove (1, 0, walls) then
+	    autoRight := false
+	end if
+    elsif autoLeft and not autoLeftOverride then
+	if not User -> collisionMove (-1, 0, walls) then
+	    autoLeft := false
+	end if
+    elsif autoUp and not autoUpOverride then
+	if not User -> collisionMove (0, 1, walls) then
+	    autoUp := false
+	end if
+    elsif autoDown and not autoDownOverride then
+	if not User -> collisionMove (0, -1, walls) then
+	    autoDown := false
+	end if
+    end if
 
 
     if (chars ('r')) then
