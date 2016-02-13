@@ -6,6 +6,7 @@ forward proc drawNumber (x : int, y : int, number : int, anchor : int)
 forward proc gameInput
 forward proc drawMenuScreen
 forward proc menuInput
+forward proc gameMath
 forward proc reset
 forward proc updateAI
 
@@ -607,6 +608,15 @@ walls (43) := upperWall12
 walls (44) := upperWall13
 walls (45) := upperWall14
 
+var leftTelePad : ^Rectangle
+new leftTelePad
+leftTelePad -> setRectangle (-12, 140, 0, 16)
+
+var rightTelePad : ^Rectangle
+new rightTelePad
+rightTelePad -> setRectangle (224 + 12, 140, 0, 16)
+
+
 % The main gameloop
 loop
     currentTime := Time.Elapsed
@@ -615,6 +625,8 @@ loop
 	if inGame = true then
 
 	    gameInput
+
+	    gameMath
 
 	    updateAI
 
@@ -639,6 +651,16 @@ end loop
 body proc updateAI
 
 end updateAI
+
+% Does additional game functions that isn't in Input or Rendering or AI
+body proc gameMath
+    if User -> isTouching (leftTelePad) then
+	User -> setPosition (219, 140)
+    elsif User -> isTouching (rightTelePad) then
+	User -> setPosition (-11, 140)
+    end if
+
+end gameMath
 
 % Draws the screen
 body proc drawPlayScreen
