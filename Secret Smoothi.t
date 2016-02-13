@@ -1,8 +1,12 @@
 setscreen ("graphics:448;576, nobuttonbar, position:center;center, noecho, offscreenonly")
 
+
+type Direction : enum (up, down, left, right, none)
+type FontType : enum (normal_white, normal_pink)
+
 % Initializes all the procedures and their parameters
 forward proc drawPlayScreen
-forward proc drawNumber (x : int, y : int, number : int, anchor : int)
+forward proc drawText (x, y : int, font : FontType, text : string)
 forward proc gameInput
 forward proc drawMenuScreen
 forward proc addScore (score : int)
@@ -27,8 +31,6 @@ var lastTick := 0
 var inGame := false % Defaults to Main Menu
 
 var score := 0
-
-type Direction : enum (up, down, left, right, none)
 
 % Loads all the sprites
 const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
@@ -154,6 +156,96 @@ iLargePellet (1) := Pic.Scale (Pic.FileNew ("pacman/pellet_large2.bmp"), 16, 16)
 
 var iSmallPellet : array 0 .. 0 of int
 iSmallPellet (0) := Pic.Scale (Pic.FileNew ("pacman/pellet_small.bmp"), 16, 16)
+
+
+var iWhiteText : array 0 .. 40 of int
+iWhiteText (0) := Pic.Scale (Pic.FileNew ("pacman/font/white0.bmp"), 16, 16)
+iWhiteText (1) := Pic.Scale (Pic.FileNew ("pacman/font/white1.bmp"), 16, 16)
+iWhiteText (2) := Pic.Scale (Pic.FileNew ("pacman/font/white2.bmp"), 16, 16)
+iWhiteText (3) := Pic.Scale (Pic.FileNew ("pacman/font/white3.bmp"), 16, 16)
+iWhiteText (4) := Pic.Scale (Pic.FileNew ("pacman/font/white4.bmp"), 16, 16)
+iWhiteText (5) := Pic.Scale (Pic.FileNew ("pacman/font/white5.bmp"), 16, 16)
+iWhiteText (6) := Pic.Scale (Pic.FileNew ("pacman/font/white6.bmp"), 16, 16)
+iWhiteText (7) := Pic.Scale (Pic.FileNew ("pacman/font/white7.bmp"), 16, 16)
+iWhiteText (8) := Pic.Scale (Pic.FileNew ("pacman/font/white8.bmp"), 16, 16)
+iWhiteText (9) := Pic.Scale (Pic.FileNew ("pacman/font/white9.bmp"), 16, 16)
+iWhiteText (10) := Pic.Scale (Pic.FileNew ("pacman/font/whitea.bmp"), 16, 16)
+iWhiteText (11) := Pic.Scale (Pic.FileNew ("pacman/font/whiteb.bmp"), 16, 16)
+iWhiteText (12) := Pic.Scale (Pic.FileNew ("pacman/font/whitec.bmp"), 16, 16)
+iWhiteText (13) := Pic.Scale (Pic.FileNew ("pacman/font/whited.bmp"), 16, 16)
+iWhiteText (14) := Pic.Scale (Pic.FileNew ("pacman/font/whitee.bmp"), 16, 16)
+iWhiteText (15) := Pic.Scale (Pic.FileNew ("pacman/font/whitef.bmp"), 16, 16)
+iWhiteText (16) := Pic.Scale (Pic.FileNew ("pacman/font/whiteg.bmp"), 16, 16)
+iWhiteText (17) := Pic.Scale (Pic.FileNew ("pacman/font/whiteh.bmp"), 16, 16)
+iWhiteText (18) := Pic.Scale (Pic.FileNew ("pacman/font/whitei.bmp"), 16, 16)
+iWhiteText (19) := Pic.Scale (Pic.FileNew ("pacman/font/whitej.bmp"), 16, 16)
+iWhiteText (20) := Pic.Scale (Pic.FileNew ("pacman/font/whitek.bmp"), 16, 16)
+iWhiteText (21) := Pic.Scale (Pic.FileNew ("pacman/font/whitel.bmp"), 16, 16)
+iWhiteText (22) := Pic.Scale (Pic.FileNew ("pacman/font/whiten.bmp"), 16, 16)
+iWhiteText (23) := Pic.Scale (Pic.FileNew ("pacman/font/whitem.bmp"), 16, 16)
+iWhiteText (24) := Pic.Scale (Pic.FileNew ("pacman/font/whiteo.bmp"), 16, 16)
+iWhiteText (25) := Pic.Scale (Pic.FileNew ("pacman/font/whitep.bmp"), 16, 16)
+iWhiteText (26) := Pic.Scale (Pic.FileNew ("pacman/font/whiteq.bmp"), 16, 16)
+iWhiteText (27) := Pic.Scale (Pic.FileNew ("pacman/font/whiter.bmp"), 16, 16)
+iWhiteText (28) := Pic.Scale (Pic.FileNew ("pacman/font/whites.bmp"), 16, 16)
+iWhiteText (29) := Pic.Scale (Pic.FileNew ("pacman/font/whitet.bmp"), 16, 16)
+iWhiteText (30) := Pic.Scale (Pic.FileNew ("pacman/font/whiteu.bmp"), 16, 16)
+iWhiteText (31) := Pic.Scale (Pic.FileNew ("pacman/font/whitev.bmp"), 16, 16)
+iWhiteText (32) := Pic.Scale (Pic.FileNew ("pacman/font/whitew.bmp"), 16, 16)
+iWhiteText (33) := Pic.Scale (Pic.FileNew ("pacman/font/whitex.bmp"), 16, 16)
+iWhiteText (34) := Pic.Scale (Pic.FileNew ("pacman/font/whitey.bmp"), 16, 16)
+iWhiteText (35) := Pic.Scale (Pic.FileNew ("pacman/font/whitez.bmp"), 16, 16)
+iWhiteText (36) := Pic.Scale (Pic.FileNew ("pacman/font/whiteperiod.bmp"), 16, 16)
+iWhiteText (37) := Pic.Scale (Pic.FileNew ("pacman/font/whiteexclaim.bmp"), 16, 16)
+iWhiteText (38) := Pic.Scale (Pic.FileNew ("pacman/font/whiteslash.bmp"), 16, 16)
+iWhiteText (39) := Pic.Scale (Pic.FileNew ("pacman/font/whitequote.bmp"), 16, 16)
+iWhiteText (40) := Pic.Scale (Pic.FileNew ("pacman/font/whitehyphen.bmp"), 16, 16)
+
+var iPinkText : array 0 .. 40 of int
+iPinkText (0) := Pic.Scale (Pic.FileNew ("pacman/font/pink0.bmp"), 16, 16)
+iPinkText (1) := Pic.Scale (Pic.FileNew ("pacman/font/pink1.bmp"), 16, 16)
+iPinkText (2) := Pic.Scale (Pic.FileNew ("pacman/font/pink2.bmp"), 16, 16)
+iPinkText (3) := Pic.Scale (Pic.FileNew ("pacman/font/pink3.bmp"), 16, 16)
+iPinkText (4) := Pic.Scale (Pic.FileNew ("pacman/font/pink4.bmp"), 16, 16)
+iPinkText (5) := Pic.Scale (Pic.FileNew ("pacman/font/pink5.bmp"), 16, 16)
+iPinkText (6) := Pic.Scale (Pic.FileNew ("pacman/font/pink6.bmp"), 16, 16)
+iPinkText (7) := Pic.Scale (Pic.FileNew ("pacman/font/pink7.bmp"), 16, 16)
+iPinkText (8) := Pic.Scale (Pic.FileNew ("pacman/font/pink8.bmp"), 16, 16)
+iPinkText (9) := Pic.Scale (Pic.FileNew ("pacman/font/pink9.bmp"), 16, 16)
+iPinkText (10) := Pic.Scale (Pic.FileNew ("pacman/font/pinka.bmp"), 16, 16)
+iPinkText (11) := Pic.Scale (Pic.FileNew ("pacman/font/pinkb.bmp"), 16, 16)
+iPinkText (12) := Pic.Scale (Pic.FileNew ("pacman/font/pinkc.bmp"), 16, 16)
+iPinkText (13) := Pic.Scale (Pic.FileNew ("pacman/font/pinkd.bmp"), 16, 16)
+iPinkText (14) := Pic.Scale (Pic.FileNew ("pacman/font/pinke.bmp"), 16, 16)
+iPinkText (15) := Pic.Scale (Pic.FileNew ("pacman/font/pinkf.bmp"), 16, 16)
+iPinkText (16) := Pic.Scale (Pic.FileNew ("pacman/font/pinkg.bmp"), 16, 16)
+iPinkText (17) := Pic.Scale (Pic.FileNew ("pacman/font/pinkh.bmp"), 16, 16)
+iPinkText (18) := Pic.Scale (Pic.FileNew ("pacman/font/pinki.bmp"), 16, 16)
+iPinkText (19) := Pic.Scale (Pic.FileNew ("pacman/font/pinkj.bmp"), 16, 16)
+iPinkText (20) := Pic.Scale (Pic.FileNew ("pacman/font/pinkk.bmp"), 16, 16)
+iPinkText (21) := Pic.Scale (Pic.FileNew ("pacman/font/pinkl.bmp"), 16, 16)
+iPinkText (22) := Pic.Scale (Pic.FileNew ("pacman/font/pinkn.bmp"), 16, 16)
+iPinkText (23) := Pic.Scale (Pic.FileNew ("pacman/font/pinkm.bmp"), 16, 16)
+iPinkText (24) := Pic.Scale (Pic.FileNew ("pacman/font/pinko.bmp"), 16, 16)
+iPinkText (25) := Pic.Scale (Pic.FileNew ("pacman/font/pinkp.bmp"), 16, 16)
+iPinkText (26) := Pic.Scale (Pic.FileNew ("pacman/font/pinkq.bmp"), 16, 16)
+iPinkText (27) := Pic.Scale (Pic.FileNew ("pacman/font/pinkr.bmp"), 16, 16)
+iPinkText (28) := Pic.Scale (Pic.FileNew ("pacman/font/pinks.bmp"), 16, 16)
+iPinkText (29) := Pic.Scale (Pic.FileNew ("pacman/font/pinkt.bmp"), 16, 16)
+iPinkText (30) := Pic.Scale (Pic.FileNew ("pacman/font/pinku.bmp"), 16, 16)
+iPinkText (31) := Pic.Scale (Pic.FileNew ("pacman/font/pinkv.bmp"), 16, 16)
+iPinkText (32) := Pic.Scale (Pic.FileNew ("pacman/font/pinkw.bmp"), 16, 16)
+iPinkText (33) := Pic.Scale (Pic.FileNew ("pacman/font/pinkx.bmp"), 16, 16)
+iPinkText (34) := Pic.Scale (Pic.FileNew ("pacman/font/pinky.bmp"), 16, 16)
+iPinkText (35) := Pic.Scale (Pic.FileNew ("pacman/font/pinkz.bmp"), 16, 16)
+iPinkText (36) := Pic.Scale (Pic.FileNew ("pacman/font/pinkperiod.bmp"), 16, 16)
+iPinkText (37) := Pic.Scale (Pic.FileNew ("pacman/font/pinkexclaim.bmp"), 16, 16)
+iPinkText (38) := Pic.Scale (Pic.FileNew ("pacman/font/pinkslash.bmp"), 16, 16)
+iPinkText (39) := Pic.Scale (Pic.FileNew ("pacman/font/pinkquote.bmp"), 16, 16)
+iPinkText (40) := Pic.Scale (Pic.FileNew ("pacman/font/pinkhyphen.bmp"), 16, 16)
+
+
+
 
 View.SetTransparentColor (black)
 
@@ -291,7 +383,7 @@ class AnimationRectangle
 
     var frameTrack : ^FrameHolder
     new frameTrack
-    
+
     var spriteOffsetX := 0
     var spriteOffsetY := 0
 
@@ -1518,20 +1610,26 @@ body proc drawMenuScreen
     % Draws the background
     drawfillbox (0, 0, maxx, maxy, black)
 
-    Pic.Draw (iTitle, 0, 0, picUnderMerge)
+    drawText (26, 280, FontType.normal_pink, "1UP")
+    drawText (73, 280, FontType.normal_pink, "HIGH SCORE")
+    drawText (177, 280, FontType.normal_pink, "2UP")
+
+    drawText (57, 241, FontType.normal_pink, "CHARACTER / NICKNAME")
     
+    Pic.Draw (iTitle, 0, 0, picUnderMerge)
+
     Pic.Draw (iLargePellet (0), 80 * 2, 72 * 2, picUnderMerge)
     Pic.Draw (iSmallPellet (0), (83 * 2) - 6, (91 * 2) - 6, picUnderMerge)
-    
+
     Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
     Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
     Pic.Draw (iInkyRight (0), (33 * 2) - 2, (174 * 2) - 2, picUnderMerge)
     Pic.Draw (iClydeRight (0), (33 * 2) - 2, (150 * 2) - 2, picUnderMerge)
-    
+
     Pic.Draw (iScaredGhost (0), (89 * 2) - 2, (117 * 2) - 2, picUnderMerge)
     Pic.Draw (iScaredGhost (0), (104 * 2) - 1, (117 * 2) - 2, picUnderMerge)
     Pic.Draw (iScaredGhost (0), (120 * 2) - 2, (117 * 2) - 2, picUnderMerge)
-    
+
     titleCredits -> draw
 
 end drawMenuScreen
@@ -1581,27 +1679,104 @@ body proc menuInput
 end menuInput
 
 % Draws a number (used to draw the score)
-body proc drawNumber
-    var font := Font.New (typeface + ":40")
-    var offsetX := x
-    var width := Font.Width (intstr (number), font)
+body proc drawText
+    for i : 1 .. length (text)
+	if not text (i) = " " then
+	    var letterOrdinal := 0
 
-    % If it anchors to the right of the number then it will offset the x to the width of the text
-    if anchor = 3 then
-	offsetX -= width
+	    if text (i) = "0" then
+		letterOrdinal := 0
+	    elsif text (i) = "1" then
+		letterOrdinal := 1
+	    elsif text (i) = "2" then
+		letterOrdinal := 2
+	    elsif text (i) = "3" then
+		letterOrdinal := 3
+	    elsif text (i) = "4" then
+		letterOrdinal := 4
+	    elsif text (i) = "5" then
+		letterOrdinal := 5
+	    elsif text (i) = "6" then
+		letterOrdinal := 6
+	    elsif text (i) = "7" then
+		letterOrdinal := 7
+	    elsif text (i) = "8" then
+		letterOrdinal := 8
+	    elsif text (i) = "9" then
+		letterOrdinal := 9
+	    elsif text (i) = "A" or text (i) = "a" then
+		letterOrdinal := 10
+	    elsif text (i) = "B" or text (i) = "b" then
+		letterOrdinal := 11
+	    elsif text (i) = "C" or text (i) = "c" then
+		letterOrdinal := 12
+	    elsif text (i) = "D" or text (i) = "d" then
+		letterOrdinal := 13
+	    elsif text (i) = "E" or text (i) = "e" then
+		letterOrdinal := 14
+	    elsif text (i) = "F" or text (i) = "f" then
+		letterOrdinal := 15
+	    elsif text (i) = "G" or text (i) = "g" then
+		letterOrdinal := 16
+	    elsif text (i) = "H" or text (i) = "h" then
+		letterOrdinal := 17
+	    elsif text (i) = "I" or text (i) = "i" then
+		letterOrdinal := 18
+	    elsif text (i) = "J" or text (i) = "j" then
+		letterOrdinal := 19
+	    elsif text (i) = "K" or text (i) = "k" then
+		letterOrdinal := 20
+	    elsif text (i) = "L" or text (i) = "l" then
+		letterOrdinal := 21
+	    elsif text (i) = "M" or text (i) = "m" then
+		letterOrdinal := 22
+	    elsif text (i) = "N" or text (i) = "n" then
+		letterOrdinal := 23
+	    elsif text (i) = "O" or text (i) = "o" then
+		letterOrdinal := 24
+	    elsif text (i) = "P" or text (i) = "p" then
+		letterOrdinal := 25
+	    elsif text (i) = "Q" or text (i) = "q" then
+		letterOrdinal := 26
+	    elsif text (i) = "R" or text (i) = "r" then
+		letterOrdinal := 27
+	    elsif text (i) = "S" or text (i) = "s" then
+		letterOrdinal := 28
+	    elsif text (i) = "T" or text (i) = "t" then
+		letterOrdinal := 29
+	    elsif text (i) = "U" or text (i) = "u" then
+		letterOrdinal := 30
+	    elsif text (i) = "V" or text (i) = "v" then
+		letterOrdinal := 31
+	    elsif text (i) = "W" or text (i) = "w" then
+		letterOrdinal := 32
+	    elsif text (i) = "X" or text (i) = "x" then
+		letterOrdinal := 33
+	    elsif text (i) = "Y" or text (i) = "y" then
+		letterOrdinal := 34
+	    elsif text (i) = "Z" or text (i) = "z" then
+		letterOrdinal := 35
+	    elsif text (i) = "." then
+		letterOrdinal := 36
+	    elsif text (i) = "!" then
+		letterOrdinal := 37
+	    elsif text (i) = "/" then
+		letterOrdinal := 38
+	    elsif text (i) = "\"" then
+		letterOrdinal := 39
+	    elsif text (i) = "-" then
+		letterOrdinal := 40
+	    end if
+	    
+	    var picID : int
 
-	% If it anchors to the middle of the number then it will offset the x to half the width of the text
-    elsif anchor = 2 then
-	offsetX -= floor (width / 2)
-    end if
+	    if font = FontType.normal_white then
+		picID := iWhiteText (letterOrdinal)
+	    elsif font = FontType.normal_pink then
+		picID := iPinkText (letterOrdinal)
+	    end if
 
-    % Fixes a bug where when score is 0 it will get drawn too far to the right
-    if number = 0 and anchor = 1 then
-	offsetX -= 6
-    elsif number = 0 and anchor = 2 then
-	offsetX -= 3
-    end if
-
-    % Draws the final number
-    Font.Draw (intstr (number), offsetX, y, font, white)
-end drawNumber
+	    Pic.Draw (picID, (x * 2) - 4 + ((i - 1) * 16), (y * 2) - 2, picUnderMerge)
+	end if
+    end for
+end drawText
