@@ -1,5 +1,16 @@
-setscreen ("graphics:448;576, nobuttonbar, position:center;center, noecho, offscreenonly")
+/* -Fruit appears for Pacman to eat after eating 70 dots and 170 dots.
+ *
+ * AI
+ * - Blinky is the strict chaser and will never stray from Pacman's back.
+ * - Pinky and Inky use different strategies and paths in attempts to position themselves in front of Pacman
+ * - Clyde chases when far away from Pac-Man but turns away to block an alternate path (usually deviating towards the bottom left of the screen) when coming closer.
+ *
+ *
+ */
 
+import GUI
+setscreen ("graphics:448;576, nobuttonbar, position:center;center, noecho, offscreenonly")
+var exitProgram := false
 
 type Direction : enum (up, down, left, right, none)
 type FontType : enum (normal_white, normal_pink, normal_red, normal_orange, normal_blue)
@@ -15,6 +26,10 @@ forward proc gameMath
 forward proc reset
 forward proc setupNextLevel
 forward proc updateAI
+forward proc loadFile
+forward proc saveFile
+forward proc resetSaveVariables
+forward proc closeGame
 
 const debug := false
 
@@ -30,11 +45,15 @@ var lastTick := 0
 
 var inGame := false % Defaults to Main Menu
 
+var openTime := 0 % The amount of times this has been opened
+
 var score := 0
+var highScore := 0
 
 % Loads all the sprites
 const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
 const iTitle : int := Pic.Scale (Pic.FileNew ("pacman/title.bmp"), maxx, maxy)
+const iLogo : int := Pic.FileNew ("pacman/logo.bmp")
 
 var iPacmanLeft : array 0 .. 3 of int
 iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
@@ -146,7 +165,7 @@ iScaredGhost (0) := Pic.Scale (Pic.FileNew ("pacman/scared_ghost1.bmp"), 32, 32)
 iScaredGhost (1) := Pic.Scale (Pic.FileNew ("pacman/scared_ghost2.bmp"), 32, 32)
 
 
-var iWhiteText : array 0 .. 41 of int
+var iWhiteText : array 0 .. 43 of int
 iWhiteText (0) := Pic.Scale (Pic.FileNew ("pacman/font/white0.bmp"), 16, 16)
 iWhiteText (1) := Pic.Scale (Pic.FileNew ("pacman/font/white1.bmp"), 16, 16)
 iWhiteText (2) := Pic.Scale (Pic.FileNew ("pacman/font/white2.bmp"), 16, 16)
@@ -189,8 +208,10 @@ iWhiteText (38) := Pic.Scale (Pic.FileNew ("pacman/font/whiteslash.bmp"), 16, 16
 iWhiteText (39) := Pic.Scale (Pic.FileNew ("pacman/font/whitequote.bmp"), 16, 16)
 iWhiteText (40) := Pic.Scale (Pic.FileNew ("pacman/font/whitehyphen.bmp"), 16, 16)
 iWhiteText (41) := Pic.Scale (Pic.FileNew ("pacman/font/whitecopy.bmp"), 16, 16)
+iWhiteText (42) := Pic.Scale (Pic.FileNew ("pacman/font/whitecomma.bmp"), 16, 16)
+iWhiteText (43) := Pic.Scale (Pic.FileNew ("pacman/font/whiteapos.bmp"), 16, 16)
 
-var iPinkText : array 0 .. 41 of int
+var iPinkText : array 0 .. 43 of int
 iPinkText (0) := Pic.Scale (Pic.FileNew ("pacman/font/pink0.bmp"), 16, 16)
 iPinkText (1) := Pic.Scale (Pic.FileNew ("pacman/font/pink1.bmp"), 16, 16)
 iPinkText (2) := Pic.Scale (Pic.FileNew ("pacman/font/pink2.bmp"), 16, 16)
@@ -233,8 +254,10 @@ iPinkText (38) := Pic.Scale (Pic.FileNew ("pacman/font/pinkslash.bmp"), 16, 16)
 iPinkText (39) := Pic.Scale (Pic.FileNew ("pacman/font/pinkquote.bmp"), 16, 16)
 iPinkText (40) := Pic.Scale (Pic.FileNew ("pacman/font/pinkhyphen.bmp"), 16, 16)
 iPinkText (41) := Pic.Scale (Pic.FileNew ("pacman/font/pinkcopy.bmp"), 16, 16)
+iPinkText (42) := Pic.Scale (Pic.FileNew ("pacman/font/pinkcomma.bmp"), 16, 16)
+iPinkText (43) := Pic.Scale (Pic.FileNew ("pacman/font/pinkapos.bmp"), 16, 16)
 
-var iRedText : array 0 .. 41 of int
+var iRedText : array 0 .. 43 of int
 iRedText (0) := Pic.Scale (Pic.FileNew ("pacman/font/red0.bmp"), 16, 16)
 iRedText (1) := Pic.Scale (Pic.FileNew ("pacman/font/red1.bmp"), 16, 16)
 iRedText (2) := Pic.Scale (Pic.FileNew ("pacman/font/red2.bmp"), 16, 16)
@@ -277,8 +300,10 @@ iRedText (38) := Pic.Scale (Pic.FileNew ("pacman/font/redslash.bmp"), 16, 16)
 iRedText (39) := Pic.Scale (Pic.FileNew ("pacman/font/redquote.bmp"), 16, 16)
 iRedText (40) := Pic.Scale (Pic.FileNew ("pacman/font/redhyphen.bmp"), 16, 16)
 iRedText (41) := Pic.Scale (Pic.FileNew ("pacman/font/redcopy.bmp"), 16, 16)
+iRedText (42) := Pic.Scale (Pic.FileNew ("pacman/font/redcomma.bmp"), 16, 16)
+iRedText (43) := Pic.Scale (Pic.FileNew ("pacman/font/redapos.bmp"), 16, 16)
 
-var iOrangeText : array 0 .. 41 of int
+var iOrangeText : array 0 .. 43 of int
 iOrangeText (0) := Pic.Scale (Pic.FileNew ("pacman/font/orange0.bmp"), 16, 16)
 iOrangeText (1) := Pic.Scale (Pic.FileNew ("pacman/font/orange1.bmp"), 16, 16)
 iOrangeText (2) := Pic.Scale (Pic.FileNew ("pacman/font/orange2.bmp"), 16, 16)
@@ -321,8 +346,10 @@ iOrangeText (38) := Pic.Scale (Pic.FileNew ("pacman/font/orangeslash.bmp"), 16, 
 iOrangeText (39) := Pic.Scale (Pic.FileNew ("pacman/font/orangequote.bmp"), 16, 16)
 iOrangeText (40) := Pic.Scale (Pic.FileNew ("pacman/font/orangehyphen.bmp"), 16, 16)
 iOrangeText (41) := Pic.Scale (Pic.FileNew ("pacman/font/orangecopy.bmp"), 16, 16)
+iOrangeText (42) := Pic.Scale (Pic.FileNew ("pacman/font/orangecomma.bmp"), 16, 16)
+iOrangeText (43) := Pic.Scale (Pic.FileNew ("pacman/font/orangeapos.bmp"), 16, 16)
 
-var iBlueText : array 0 .. 41 of int
+var iBlueText : array 0 .. 43 of int
 iBlueText (0) := Pic.Scale (Pic.FileNew ("pacman/font/blue0.bmp"), 16, 16)
 iBlueText (1) := Pic.Scale (Pic.FileNew ("pacman/font/blue1.bmp"), 16, 16)
 iBlueText (2) := Pic.Scale (Pic.FileNew ("pacman/font/blue2.bmp"), 16, 16)
@@ -365,6 +392,8 @@ iBlueText (38) := Pic.Scale (Pic.FileNew ("pacman/font/blueslash.bmp"), 16, 16)
 iBlueText (39) := Pic.Scale (Pic.FileNew ("pacman/font/bluequote.bmp"), 16, 16)
 iBlueText (40) := Pic.Scale (Pic.FileNew ("pacman/font/bluehyphen.bmp"), 16, 16)
 iBlueText (41) := Pic.Scale (Pic.FileNew ("pacman/font/bluecopy.bmp"), 16, 16)
+iBlueText (42) := Pic.Scale (Pic.FileNew ("pacman/font/bluecomma.bmp"), 16, 16)
+iBlueText (43) := Pic.Scale (Pic.FileNew ("pacman/font/blueapos.bmp"), 16, 16)
 
 View.SetTransparentColor (black)
 
@@ -1187,7 +1216,7 @@ end for
 
 var newPellet1 : ^Pellet
 new newPellet1
-newPellet1 -> setFrames (20)
+newPellet1 -> setFrames (8)
 newPellet1 -> setPellet (8, 72)
 
 pellets (totalPellets) := newPellet1
@@ -1195,7 +1224,7 @@ totalPellets := totalPellets + 1
 
 var newPellet2 : ^Pellet
 new newPellet2
-newPellet2 -> setFrames (20)
+newPellet2 -> setFrames (8)
 newPellet2 -> setPellet (208, 72)
 
 pellets (totalPellets) := newPellet2
@@ -1203,7 +1232,7 @@ totalPellets := totalPellets + 1
 
 var newPellet3 : ^Pellet
 new newPellet3
-newPellet3 -> setFrames (20)
+newPellet3 -> setFrames (8)
 newPellet3 -> setPellet (8, 232)
 
 pellets (totalPellets) := newPellet3
@@ -1211,7 +1240,7 @@ totalPellets := totalPellets + 1
 
 var newPellet4 : ^Pellet
 new newPellet4
-newPellet4 -> setFrames (20)
+newPellet4 -> setFrames (8)
 newPellet4 -> setPellet (208, 232)
 
 pellets (totalPellets) := newPellet4
@@ -1599,21 +1628,156 @@ new smallMenuPellet
 smallMenuPellet -> setPellet (83, 91)
 
 
+var inGame1Up1 : ^TextHolder
+new inGame1Up1
+inGame1Up1 -> setText (FontType.normal_white, "1UP")
 
+var inGame1Up2 : ^TextHolder
+new inGame1Up2
+inGame1Up2 -> setText (FontType.normal_white, "")
+
+var inGameOneUpText : array 0 .. 1 of ^TextHolder
+inGameOneUpText (0) := inGame1Up1
+inGameOneUpText (1) := inGame1Up2
+
+var inGameOneUp : ^AnimationText
+new inGameOneUp
+inGameOneUp -> setPosition (25, 279)
+inGameOneUp -> setFrames (inGameOneUpText, 22)
+
+
+
+loadFile
 
 % Draws the splash screen
 drawfillbox (0, 0, maxx, maxy, black)
 
-drawText (20, 20, FontType.normal_white, "sauce")
+var xTitleOff := 39
+var yTitleOff := 160
 
-Font.Draw ("PACMAN", xMenuOff, yMenuOff, Font.New (typeface + ":121:bold"), white)
-Font.Draw ("CODED BY SAMSON CLOSE", xMenuOff + 4, yMenuOff - 20, Font.New (typeface + ":8:bold"), white)
+drawText (xTitleOff, yTitleOff, FontType.normal_white, "CODED IN TURING BY")
+drawText (xTitleOff + 25, yTitleOff - (16 * 1), FontType.normal_white, "SAMSON CLOSE")
+
+var splashDelay := 3000
+
+% Use to set the openTime count for debugging
+%openTime := 3
+
+if openTime = 0 or openTime = 1 or openTime = 2 then
+    splashDelay := 5000
+    drawText (xTitleOff - 12, yTitleOff - (16 * 3), FontType.normal_white, "I DO NOT CLAIM RIGHTS")
+    drawText (xTitleOff - 12, yTitleOff - (16 * 4), FontType.normal_white, "TO ANY OF THE IMAGES")
+    drawText (xTitleOff - 12, yTitleOff - (16 * 5), FontType.normal_white, "OR SOUNDS USED IN THIS")
+    drawText (xTitleOff - 12, yTitleOff - (16 * 6), FontType.normal_white, "PROJECT.NO MONEY IS")
+    drawText (xTitleOff - 12, yTitleOff - (16 * 7), FontType.normal_white, "BEING MADE FROM THIS")
+    drawText (xTitleOff - 12, yTitleOff - (16 * 8), FontType.normal_white, "OPEN SOURCE PROJECT.")
+elsif openTime = 3 then
+    splashDelay := 5000
+    drawText (xTitleOff + 15, yTitleOff - (16 * 3), FontType.normal_white, "THANK YOU FOR")
+    drawText (xTitleOff + 15, yTitleOff - (16 * 4), FontType.normal_white, "PLAYING!")
+elsif openTime >= 4 then
+    splashDelay := 3000
+    var trivia := Rand.Int (0, 6)
+
+    % Use to set the trivia number for debugging
+    %trivia := 6
+
+    if trivia = 0 then
+	drawText (xTitleOff - 22, yTitleOff - (16 * 3), FontType.normal_white, "PACMAN WAS ORIGINALLY")
+	drawText (xTitleOff - 22, yTitleOff - (16 * 4), FontType.normal_white, "DESIGNED BY Toru Iwatani")
+	drawText (xTitleOff - 22, yTitleOff - (16 * 5), FontType.normal_white, "IN May 22, 1980")
+    elsif trivia = 1 then
+	drawText (xTitleOff - 22, yTitleOff - (16 * 3), FontType.normal_white, "PACMAN'S DESIGN WAS MADE")
+	drawText (xTitleOff - 22, yTitleOff - (16 * 4), FontType.normal_white, "BY ROUNDING THE JAPANESE")
+	drawText (xTitleOff - 22, yTitleOff - (16 * 5), FontType.normal_white, "SYMBOL FOR \"MOUTH\"")
+    elsif trivia = 2 then
+	drawText (xTitleOff - 8, yTitleOff - (16 * 3), FontType.normal_white, "THE HIGHEST POSSIBLE")
+	drawText (xTitleOff - 8, yTitleOff - (16 * 4), FontType.normal_white, "SCORE YOU CAN GET IS")
+	drawText (xTitleOff + 34, yTitleOff - (16 * 5), FontType.normal_white, "3 333 360")
+    elsif trivia = 3 then
+	drawText (xTitleOff - 8, yTitleOff - (16 * 3), FontType.normal_white, "PACMAN WAS CREATED IN")
+	drawText (xTitleOff - 8, yTitleOff - (16 * 4), FontType.normal_white, "RESPONSE TO MINDLESS")
+	drawText (xTitleOff - 8, yTitleOff - (16 * 5), FontType.normal_white, "ARCADE SHOOTERS")
+    elsif trivia = 4 then
+	drawText (xTitleOff - 20, yTitleOff - (16 * 3), FontType.normal_white, "THE DESIGNERS OF PACMAN")
+	drawText (xTitleOff - 20, yTitleOff - (16 * 4), FontType.normal_white, "EARNED NO PROFIT MADE")
+	drawText (xTitleOff - 20, yTitleOff - (16 * 5), FontType.normal_white, "FROM PACMAN'S SUCCESS.")
+	drawText (xTitleOff - 20, yTitleOff - (16 * 6), FontType.normal_white, "NAMCO COMPANY PAID THEM")
+	drawText (xTitleOff - 20, yTitleOff - (16 * 7), FontType.normal_white, "THEIR REGULAR SALARY")
+    elsif trivia = 5 then
+	drawText (xTitleOff - 10, yTitleOff - (16 * 3), FontType.normal_white, "A 35TH ANNIVERSARY")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 4), FontType.normal_white, "GAME CALLED \"PACMAN")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 5), FontType.normal_white, "256\" REVOLVES AROUND")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 6), FontType.normal_white, "A GLITCH WHICH OCCURS")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 7), FontType.normal_white, "IN LEVEL 256 OF PACMAN")
+    elsif trivia = 5 then
+	drawText (xTitleOff - 10, yTitleOff - (16 * 3), FontType.normal_white, "A 35TH ANNIVERSARY")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 4), FontType.normal_white, "GAME CALLED \"PACMAN")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 5), FontType.normal_white, "256\" REVOLVES AROUND")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 6), FontType.normal_white, "A GLITCH WHICH OCCURS")
+	drawText (xTitleOff - 10, yTitleOff - (16 * 7), FontType.normal_white, "IN LEVEL 256 OF PACMAN")
+    elsif trivia = 6 then
+	var howManyTimes := "GAME " 
+	howManyTimes += intstr(openTime)
+	howManyTimes += " TIMES"
+	drawText (xTitleOff - 7, yTitleOff - (16 * 3), FontType.normal_white, "YOU'VE LOADED THIS")
+	drawText (xTitleOff - 7, yTitleOff - (16 * 4), FontType.normal_white, howManyTimes)
+    end if
+end if
+
+Pic.Draw (iLogo, 74, 400, 0)
+
 View.Update
 
+openTime += 1
+
+var lastEnter := false
+
 loop
+    exit when exitProgram = true
+    var chars : array char of boolean
+    Input.KeyDown (chars)
+    if chars ('r') then
+	resetSaveVariables
+    end if
+    
+    if chars (KEY_ENTER) then
+	lastEnter := true
+    elsif lastEnter then
+	splashDelay := 0
+    end if
+
     currentTime := Time.Elapsed
-    exit when currentTime >= 200000
+    exit when currentTime >= splashDelay
 end loop
+
+saveFile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1646,6 +1810,8 @@ end loop
 
 % The main gameloop
 loop
+    exit when exitProgram = true
+
     currentTime := Time.Elapsed
 
     if (currentTime > lastTick + tickInterval) then
@@ -1706,6 +1872,9 @@ body proc drawPlayScreen
 
     Pic.Draw (iMap, 0, 0, picUnderMerge)
 
+    inGameOneUp -> draw
+    drawText (72, 279, FontType.normal_white, "HIGH SCORE")
+    
     User -> draw
 
     for i : 0 .. upper (walls)
@@ -1994,6 +2163,10 @@ body proc drawText
 		letterOrdinal := 40
 	    elsif text (i) = "©" then
 		letterOrdinal := 41
+	    elsif text (i) = "," then
+		letterOrdinal := 42
+	    elsif text (i) = "'" then
+		letterOrdinal := 43
 	    end if
 
 	    var picID : int
@@ -2014,3 +2187,50 @@ body proc drawText
 	end if
     end for
 end drawText
+
+body proc loadFile
+    var stremin : int
+    var temp : int
+    var lineNumber := 0
+
+    open : stremin, "pacman/save.txt", get
+
+    loop
+	exit when eof (stremin)
+	get : stremin, temp
+
+	if lineNumber = 0 then
+	    openTime := temp
+	elsif lineNumber = 1 then
+	    highScore := temp
+	end if
+
+	lineNumber += 1
+    end loop
+
+    close : stremin
+end loadFile
+
+body proc resetSaveVariables
+    openTime := 0
+    highScore := 0
+    closeGame
+end resetSaveVariables
+
+body proc closeGame
+    GUI.Quit
+    loop
+	exit when GUI.ProcessEvent
+    end loop
+    Window.Hide (defWinID)
+
+    exitProgram := true
+end closeGame
+
+body proc saveFile
+    var stremout : int
+    open : stremout, "pacman/save.txt", put
+    put : stremout, openTime
+    put : stremout, highScore
+    close : stremout
+end saveFile
