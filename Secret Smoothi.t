@@ -36,10 +36,6 @@ var score := 0
 const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
 const iTitle : int := Pic.Scale (Pic.FileNew ("pacman/title.bmp"), maxx, maxy)
 
-var iTextCredit : array 0 .. 1 of int
-iTextCredit (0) := Pic.Scale (Pic.FileNew ("pacman/text_credit1.bmp"), 142, 14)
-iTextCredit (1) := Pic.Scale (Pic.FileNew ("pacman/text_credit2.bmp"), 142, 14)
-
 var iPacmanLeft : array 0 .. 3 of int
 iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
 iPacmanLeft (1) := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
@@ -173,8 +169,8 @@ iWhiteText (18) := Pic.Scale (Pic.FileNew ("pacman/font/whitei.bmp"), 16, 16)
 iWhiteText (19) := Pic.Scale (Pic.FileNew ("pacman/font/whitej.bmp"), 16, 16)
 iWhiteText (20) := Pic.Scale (Pic.FileNew ("pacman/font/whitek.bmp"), 16, 16)
 iWhiteText (21) := Pic.Scale (Pic.FileNew ("pacman/font/whitel.bmp"), 16, 16)
-iWhiteText (22) := Pic.Scale (Pic.FileNew ("pacman/font/whiten.bmp"), 16, 16)
-iWhiteText (23) := Pic.Scale (Pic.FileNew ("pacman/font/whitem.bmp"), 16, 16)
+iWhiteText (22) := Pic.Scale (Pic.FileNew ("pacman/font/whitem.bmp"), 16, 16)
+iWhiteText (23) := Pic.Scale (Pic.FileNew ("pacman/font/whiten.bmp"), 16, 16)
 iWhiteText (24) := Pic.Scale (Pic.FileNew ("pacman/font/whiteo.bmp"), 16, 16)
 iWhiteText (25) := Pic.Scale (Pic.FileNew ("pacman/font/whitep.bmp"), 16, 16)
 iWhiteText (26) := Pic.Scale (Pic.FileNew ("pacman/font/whiteq.bmp"), 16, 16)
@@ -217,8 +213,8 @@ iPinkText (18) := Pic.Scale (Pic.FileNew ("pacman/font/pinki.bmp"), 16, 16)
 iPinkText (19) := Pic.Scale (Pic.FileNew ("pacman/font/pinkj.bmp"), 16, 16)
 iPinkText (20) := Pic.Scale (Pic.FileNew ("pacman/font/pinkk.bmp"), 16, 16)
 iPinkText (21) := Pic.Scale (Pic.FileNew ("pacman/font/pinkl.bmp"), 16, 16)
-iPinkText (22) := Pic.Scale (Pic.FileNew ("pacman/font/pinkn.bmp"), 16, 16)
-iPinkText (23) := Pic.Scale (Pic.FileNew ("pacman/font/pinkm.bmp"), 16, 16)
+iPinkText (22) := Pic.Scale (Pic.FileNew ("pacman/font/pinkm.bmp"), 16, 16)
+iPinkText (23) := Pic.Scale (Pic.FileNew ("pacman/font/pinkn.bmp"), 16, 16)
 iPinkText (24) := Pic.Scale (Pic.FileNew ("pacman/font/pinko.bmp"), 16, 16)
 iPinkText (25) := Pic.Scale (Pic.FileNew ("pacman/font/pinkp.bmp"), 16, 16)
 iPinkText (26) := Pic.Scale (Pic.FileNew ("pacman/font/pinkq.bmp"), 16, 16)
@@ -313,7 +309,7 @@ iOrangeText (26) := Pic.Scale (Pic.FileNew ("pacman/font/orangeq.bmp"), 16, 16)
 iOrangeText (27) := Pic.Scale (Pic.FileNew ("pacman/font/oranger.bmp"), 16, 16)
 iOrangeText (28) := Pic.Scale (Pic.FileNew ("pacman/font/oranges.bmp"), 16, 16)
 iOrangeText (29) := Pic.Scale (Pic.FileNew ("pacman/font/oranget.bmp"), 16, 16)
-iOrangeText (20) := Pic.Scale (Pic.FileNew ("pacman/font/orangeu.bmp"), 16, 16)
+iOrangeText (30) := Pic.Scale (Pic.FileNew ("pacman/font/orangeu.bmp"), 16, 16)
 iOrangeText (31) := Pic.Scale (Pic.FileNew ("pacman/font/orangev.bmp"), 16, 16)
 iOrangeText (32) := Pic.Scale (Pic.FileNew ("pacman/font/orangew.bmp"), 16, 16)
 iOrangeText (33) := Pic.Scale (Pic.FileNew ("pacman/font/orangex.bmp"), 16, 16)
@@ -583,6 +579,82 @@ class AnimationRectangle
 
 end AnimationRectangle
 
+class TextHolder
+    import FontType
+    export setText, font, text
+
+    var font : FontType
+    var text : string
+
+    proc setText (newFont : FontType, newText : string)
+	font := newFont
+	text := newText
+    end setText
+end TextHolder
+
+class AnimationText
+    import Rectangle, TextHolder, drawText
+    %% This tells us what can be used outside the class
+    %% if not listed here it cannot be used outside the class
+    export getX, getY, draw, setPosition, setFrames
+
+    var currentFrameTrack := 0
+
+    var frameTrack : array 0 .. 15 of ^TextHolder
+    var trackLength := 0
+
+    var x := 0
+    var y := 0
+
+    var framesPassed := 0
+    var currentFrame := 0
+    var ticksPerFrame := 0
+
+    % tpf = ticks per frame. The amount of render ticks required to pass before the sprite changes.
+    proc setFrames (newFrames : array 0 .. * of ^TextHolder, tpf : int)
+	ticksPerFrame := tpf
+
+	trackLength := upper (newFrames)
+
+	for i : 0 .. trackLength
+	    frameTrack (i) := newFrames (i)
+	end for
+    end setFrames
+
+    proc setPosition (xPos, yPos : int)
+	x := xPos
+	y := yPos
+    end setPosition
+
+    fcn getX : int
+	result x
+    end getX
+
+    fcn getY : int
+	result y
+    end getY
+
+    proc move (xOff, yOff : int)
+	x := x + xOff
+	y := y + yOff
+    end move
+
+    proc draw
+	framesPassed := framesPassed + 1
+
+	if framesPassed >= ticksPerFrame then
+	    framesPassed := 0
+	    currentFrame := currentFrame + 1
+
+	    if currentFrame > trackLength then
+		currentFrame := 0
+	    end if
+	end if
+
+	drawText (x, y, frameTrack (currentFrame) -> font, frameTrack (currentFrame) -> text)
+    end draw
+
+end AnimationText
 
 class SpriteRectangle
     import Rectangle, Direction, FrameHolder
@@ -1499,11 +1571,22 @@ for i : 0 .. 3 % Right Column top
     totalPellets := totalPellets + 1
 end for
 
+var titleCredits1 : ^TextHolder
+new titleCredits1
+titleCredits1 -> setText (FontType.normal_white, "CREDIT 1")
 
-var titleCredits : ^AnimationRectangle
+var titleCredits2 : ^TextHolder
+new titleCredits2
+titleCredits2 -> setText (FontType.normal_white, "")
+
+var titleCreditsText : array 0 .. 1 of ^TextHolder
+titleCreditsText (0) := titleCredits1
+titleCreditsText (1) := titleCredits2
+
+var titleCredits : ^AnimationText
 new titleCredits
-titleCredits -> setRectangle (17, 1, 71, 7)
-titleCredits -> setFrames (iTextCredit, 38, 0, 0)
+titleCredits -> setPosition (16, 0)
+titleCredits -> setFrames (titleCreditsText, 38)
 
 var largeMenuPellet : ^Pellet
 new largeMenuPellet
@@ -1521,13 +1604,15 @@ smallMenuPellet -> setPellet (83, 91)
 % Draws the splash screen
 drawfillbox (0, 0, maxx, maxy, black)
 
+drawText (20, 20, FontType.normal_white, "sauce")
+
 Font.Draw ("PACMAN", xMenuOff, yMenuOff, Font.New (typeface + ":121:bold"), white)
 Font.Draw ("CODED BY SAMSON CLOSE", xMenuOff + 4, yMenuOff - 20, Font.New (typeface + ":8:bold"), white)
 View.Update
 
 loop
     currentTime := Time.Elapsed
-    exit when currentTime >= 2000
+    exit when currentTime >= 200000
 end loop
 
 
@@ -1733,34 +1818,34 @@ body proc drawMenuScreen
     % Draws the background
     drawfillbox (0, 0, maxx, maxy, black)
 
-    %drawText (25, 279, FontType.normal_white, "1UP")
-    %drawText (72, 279, FontType.normal_white, "HIGH SCORE")
-    %drawText (176, 279, FontType.normal_white, "2UP")
+    drawText (25, 279, FontType.normal_white, "1UP")
+    drawText (72, 279, FontType.normal_white, "HIGH SCORE")
+    drawText (176, 279, FontType.normal_white, "2UP")
 
-    %drawText (56, 240, FontType.normal_white, "CHARACTER / NICKNAME")
+    drawText (56, 240, FontType.normal_white, "CHARACTER / NICKNAME")
 
-    %drawText (56, 224, FontType.normal_red, "-SHADOWN")
-    %drawText (144, 224, FontType.normal_red, "\"BLINKY\"")
+    drawText (56, 224, FontType.normal_red, "-SHADOWN")
+    drawText (144, 224, FontType.normal_red, "\"BLINKY\"")
 
-    %drawText (56, 200, FontType.normal_pink, "-SPEEDY")
-    %drawText (144, 200, FontType.normal_pink, "\"PINKY\"")
+    drawText (56, 200, FontType.normal_pink, "-SPEEDY")
+    drawText (144, 200, FontType.normal_pink, "\"PINKY\"")
 
-    %drawText (56, 176, FontType.normal_blue, "-BASHFUL")
-    %drawText (144, 176, FontType.normal_blue, "\"INKY\"")
+    drawText (56, 176, FontType.normal_blue, "-BASHFUL")
+    drawText (144, 176, FontType.normal_blue, "\"INKY\"")
 
-    %drawText (56, 176, FontType.normal_blue, "-POKEY")
-    %drawText (144, 176, FontType.normal_blue, "\"CLYDE\"")
+    drawText (56, 152, FontType.normal_orange, "-POKEY")
+    drawText (144, 152, FontType.normal_orange, "\"CLYDE\"")
 
-    %drawText (32, 32, FontType.normal_pink, "© 1980 MIDWAY MFG.CO.")
+    drawText (96, 88, FontType.normal_white, "10")
+    drawText (96, 72, FontType.normal_white, "50")
 
+    drawText (32, 32, FontType.normal_pink, "© 1980 MIDWAY MFG.CO.")
 
     Pic.Draw (iTitle, 0, 0, picUnderMerge)
 
     largeMenuPellet -> draw
     smallMenuPellet -> draw
-
-    %Pic.Draw (iLargePellet (0), 80 * 2, 72 * 2, picUnderMerge)
-    %Pic.Draw (iSmallPellet (0), (83 * 2) - 6, (91 * 2) - 6, picUnderMerge)
+    titleCredits -> draw
 
     Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
     Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
