@@ -17,10 +17,12 @@ type FontType : enum (normal_white, normal_pink, normal_red, normal_orange, norm
 
 % Initializes all the procedures and their parameters
 forward proc drawPlayScreen
+forward proc drawTextRight (x, y : int, font : FontType, text : string)
+forward proc drawTextCenter (x, y : int, font : FontType, text : string)
 forward proc drawText (x, y : int, font : FontType, text : string)
 forward proc gameInput
 forward proc drawMenuScreen
-forward proc addScore (score : int)
+forward proc addScore (toAdd : int)
 forward proc menuInput
 forward proc gameMath
 forward proc reset
@@ -39,7 +41,7 @@ const halfy := floor (maxy / 2)
 const xMenuOff := 110
 const yMenuOff := 430
 
-const tickInterval := (1000 / 60) % The time in milliseconds between ticks
+const tickInterval := (1000 / 40) % The time in milliseconds between ticks
 var currentTime := 0
 var lastTick := 0
 
@@ -51,118 +53,118 @@ var score := 0
 var highScore := 0
 
 % Loads all the sprites
-const iMap : int := Pic.Scale (Pic.FileNew ("pacman/map.bmp"), maxx, maxy)
-const iTitle : int := Pic.Scale (Pic.FileNew ("pacman/title.bmp"), maxx, maxy)
-const iLogo : int := Pic.FileNew ("pacman/logo.bmp")
+const iMap : int := Pic.Scale (Pic.FileNew ("pacman/textures/map.bmp"), maxx, maxy)
+const iTitle : int := Pic.Scale (Pic.FileNew ("pacman/textures/title.bmp"), maxx, maxy)
+const iLogo : int := Pic.FileNew ("pacman/textures/logo.bmp")
 
 var iPacmanLeft : array 0 .. 3 of int
-iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32)
-iPacmanLeft (1) := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
-iPacmanLeft (2) := Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32)
-iPacmanLeft (3) := Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32)
+iPacmanLeft (0) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman0.bmp"), 32, 32)
+iPacmanLeft (1) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32)
+iPacmanLeft (2) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman2.bmp"), 32, 32)
+iPacmanLeft (3) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32)
 
 var iPacmanDown : array 0 .. 3 of int
-iPacmanDown (0) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 270, 16, 16))
-iPacmanDown (1) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16))
-iPacmanDown (2) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 270, 16, 16))
-iPacmanDown (3) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (0) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman0.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (1) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (2) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman2.bmp"), 32, 32), 270, 16, 16))
+iPacmanDown (3) := Pic.Flip (Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32), 270, 16, 16))
 
 var iPacmanRight : array 0 .. 3 of int
-iPacmanRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32))
-iPacmanRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32))
-iPacmanRight (2) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32))
-iPacmanRight (3) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32))
+iPacmanRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/pacman0.bmp"), 32, 32))
+iPacmanRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32))
+iPacmanRight (2) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/pacman2.bmp"), 32, 32))
+iPacmanRight (3) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32))
 
 var iPacmanUp : array 0 .. 3 of int
-iPacmanUp (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman0.bmp"), 32, 32), 270, 16, 16)
-iPacmanUp (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16)
-iPacmanUp (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman2.bmp"), 32, 32), 270, 16, 16)
-iPacmanUp (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/pacman1.bmp"), 32, 32), 270, 16, 16)
+iPacmanUp (0) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman0.bmp"), 32, 32), 270, 16, 16)
+iPacmanUp (1) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32), 270, 16, 16)
+iPacmanUp (2) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman2.bmp"), 32, 32), 270, 16, 16)
+iPacmanUp (3) := Pic.Rotate (Pic.Scale (Pic.FileNew ("pacman/textures/pacman1.bmp"), 32, 32), 270, 16, 16)
 
 var iPacmanDead : array 0 .. 12 of int
-iPacmanDead (0) := Pic.Scale (Pic.FileNew ("pacman/pacman3.bmp"), 32, 32)
-iPacmanDead (1) := Pic.Scale (Pic.FileNew ("pacman/pacman4.bmp"), 32, 32)
-iPacmanDead (2) := Pic.Scale (Pic.FileNew ("pacman/pacman5.bmp"), 32, 32)
-iPacmanDead (3) := Pic.Scale (Pic.FileNew ("pacman/pacman6.bmp"), 32, 32)
-iPacmanDead (4) := Pic.Scale (Pic.FileNew ("pacman/pacman7.bmp"), 32, 32)
-iPacmanDead (5) := Pic.Scale (Pic.FileNew ("pacman/pacman8.bmp"), 32, 32)
-iPacmanDead (6) := Pic.Scale (Pic.FileNew ("pacman/pacman9.bmp"), 32, 32)
-iPacmanDead (7) := Pic.Scale (Pic.FileNew ("pacman/pacman10.bmp"), 32, 32)
-iPacmanDead (8) := Pic.Scale (Pic.FileNew ("pacman/pacman11.bmp"), 32, 32)
-iPacmanDead (9) := Pic.Scale (Pic.FileNew ("pacman/pacman12.bmp"), 32, 32)
-iPacmanDead (10) := Pic.Scale (Pic.FileNew ("pacman/pacman13.bmp"), 32, 32)
-iPacmanDead (11) := Pic.Scale (Pic.FileNew ("pacman/pacman14.bmp"), 32, 32)
-iPacmanDead (12) := Pic.Scale (Pic.FileNew ("pacman/pacman15.bmp"), 32, 32)
+iPacmanDead (0) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman3.bmp"), 32, 32)
+iPacmanDead (1) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman4.bmp"), 32, 32)
+iPacmanDead (2) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman5.bmp"), 32, 32)
+iPacmanDead (3) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman6.bmp"), 32, 32)
+iPacmanDead (4) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman7.bmp"), 32, 32)
+iPacmanDead (5) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman8.bmp"), 32, 32)
+iPacmanDead (6) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman9.bmp"), 32, 32)
+iPacmanDead (7) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman10.bmp"), 32, 32)
+iPacmanDead (8) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman11.bmp"), 32, 32)
+iPacmanDead (9) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman12.bmp"), 32, 32)
+iPacmanDead (10) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman13.bmp"), 32, 32)
+iPacmanDead (11) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman14.bmp"), 32, 32)
+iPacmanDead (12) := Pic.Scale (Pic.FileNew ("pacman/textures/pacman15.bmp"), 32, 32)
 
 
 var iBlinkyLeft : array 0 .. 1 of int
-iBlinkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/blinky_side1.bmp"), 32, 32)
-iBlinkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/blinky_side2.bmp"), 32, 32)
+iBlinkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/textures/blinky_side1.bmp"), 32, 32)
+iBlinkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/textures/blinky_side2.bmp"), 32, 32)
 
 var iBlinkyDown : array 0 .. 1 of int
-iBlinkyDown (0) := Pic.Scale (Pic.FileNew ("pacman/blinky_down1.bmp"), 32, 32)
-iBlinkyDown (1) := Pic.Scale (Pic.FileNew ("pacman/blinky_down2.bmp"), 32, 32)
+iBlinkyDown (0) := Pic.Scale (Pic.FileNew ("pacman/textures/blinky_down1.bmp"), 32, 32)
+iBlinkyDown (1) := Pic.Scale (Pic.FileNew ("pacman/textures/blinky_down2.bmp"), 32, 32)
 
 var iBlinkyRight : array 0 .. 1 of int
-iBlinkyRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/blinky_side1.bmp"), 32, 32))
-iBlinkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/blinky_side2.bmp"), 32, 32))
+iBlinkyRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/blinky_side1.bmp"), 32, 32))
+iBlinkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/blinky_side2.bmp"), 32, 32))
 
 var iBlinkyUp : array 0 .. 1 of int
-iBlinkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/blinky_up1.bmp"), 32, 32)
-iBlinkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/blinky_up2.bmp"), 32, 32)
+iBlinkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/textures/blinky_up1.bmp"), 32, 32)
+iBlinkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/textures/blinky_up2.bmp"), 32, 32)
 
 var iClydeLeft : array 0 .. 1 of int
-iClydeLeft (0) := Pic.Scale (Pic.FileNew ("pacman/clyde_side1.bmp"), 32, 32)
-iClydeLeft (1) := Pic.Scale (Pic.FileNew ("pacman/clyde_side2.bmp"), 32, 32)
+iClydeLeft (0) := Pic.Scale (Pic.FileNew ("pacman/textures/clyde_side1.bmp"), 32, 32)
+iClydeLeft (1) := Pic.Scale (Pic.FileNew ("pacman/textures/clyde_side2.bmp"), 32, 32)
 
 var iClydeDown : array 0 .. 1 of int
-iClydeDown (0) := Pic.Scale (Pic.FileNew ("pacman/clyde_down1.bmp"), 32, 32)
-iClydeDown (1) := Pic.Scale (Pic.FileNew ("pacman/clyde_down2.bmp"), 32, 32)
+iClydeDown (0) := Pic.Scale (Pic.FileNew ("pacman/textures/clyde_down1.bmp"), 32, 32)
+iClydeDown (1) := Pic.Scale (Pic.FileNew ("pacman/textures/clyde_down2.bmp"), 32, 32)
 
 var iClydeRight : array 0 .. 1 of int
-iClydeRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/clyde_side1.bmp"), 32, 32))
-iClydeRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/clyde_side2.bmp"), 32, 32))
+iClydeRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/clyde_side1.bmp"), 32, 32))
+iClydeRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/clyde_side2.bmp"), 32, 32))
 
 var iClydeUp : array 0 .. 1 of int
-iClydeUp (0) := Pic.Scale (Pic.FileNew ("pacman/clyde_up1.bmp"), 32, 32)
-iClydeUp (1) := Pic.Scale (Pic.FileNew ("pacman/clyde_up2.bmp"), 32, 32)
+iClydeUp (0) := Pic.Scale (Pic.FileNew ("pacman/textures/clyde_up1.bmp"), 32, 32)
+iClydeUp (1) := Pic.Scale (Pic.FileNew ("pacman/textures/clyde_up2.bmp"), 32, 32)
 
 
 var iInkyLeft : array 0 .. 1 of int
-iInkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/inky_side1.bmp"), 32, 32)
-iInkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/inky_side2.bmp"), 32, 32)
+iInkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/textures/inky_side1.bmp"), 32, 32)
+iInkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/textures/inky_side2.bmp"), 32, 32)
 
 var iInkyDown : array 0 .. 1 of int
-iInkyDown (0) := Pic.Scale (Pic.FileNew ("pacman/inky_down1.bmp"), 32, 32)
-iInkyDown (1) := Pic.Scale (Pic.FileNew ("pacman/inky_down2.bmp"), 32, 32)
+iInkyDown (0) := Pic.Scale (Pic.FileNew ("pacman/textures/inky_down1.bmp"), 32, 32)
+iInkyDown (1) := Pic.Scale (Pic.FileNew ("pacman/textures/inky_down2.bmp"), 32, 32)
 
 var iInkyRight : array 0 .. 1 of int
-iInkyRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/inky_side1.bmp"), 32, 32))
-iInkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/inky_side2.bmp"), 32, 32))
+iInkyRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/inky_side1.bmp"), 32, 32))
+iInkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/inky_side2.bmp"), 32, 32))
 
 var iInkyUp : array 0 .. 1 of int
-iInkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/inky_up1.bmp"), 32, 32)
-iInkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/inky_up2.bmp"), 32, 32)
+iInkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/textures/inky_up1.bmp"), 32, 32)
+iInkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/textures/inky_up2.bmp"), 32, 32)
 
 var iPinkyLeft : array 0 .. 1 of int
-iPinkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/pinky_side1.bmp"), 32, 32)
-iPinkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/pinky_side2.bmp"), 32, 32)
+iPinkyLeft (0) := Pic.Scale (Pic.FileNew ("pacman/textures/pinky_side1.bmp"), 32, 32)
+iPinkyLeft (1) := Pic.Scale (Pic.FileNew ("pacman/textures/pinky_side2.bmp"), 32, 32)
 
 var iPinkyDown : array 0 .. 1 of int
-iPinkyDown (0) := Pic.Scale (Pic.FileNew ("pacman/pinky_down1.bmp"), 32, 32)
-iPinkyDown (1) := Pic.Scale (Pic.FileNew ("pacman/pinky_down2.bmp"), 32, 32)
+iPinkyDown (0) := Pic.Scale (Pic.FileNew ("pacman/textures/pinky_down1.bmp"), 32, 32)
+iPinkyDown (1) := Pic.Scale (Pic.FileNew ("pacman/textures/pinky_down2.bmp"), 32, 32)
 
 var iPinkyRight : array 0 .. 1 of int
-iPinkyRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pinky_side1.bmp"), 32, 32))
-iPinkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/pinky_side2.bmp"), 32, 32))
+iPinkyRight (0) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/pinky_side1.bmp"), 32, 32))
+iPinkyRight (1) := Pic.Mirror (Pic.Scale (Pic.FileNew ("pacman/textures/pinky_side2.bmp"), 32, 32))
 
 var iPinkyUp : array 0 .. 1 of int
-iPinkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/pinky_up1.bmp"), 32, 32)
-iPinkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/pinky_up2.bmp"), 32, 32)
+iPinkyUp (0) := Pic.Scale (Pic.FileNew ("pacman/textures/pinky_up1.bmp"), 32, 32)
+iPinkyUp (1) := Pic.Scale (Pic.FileNew ("pacman/textures/pinky_up2.bmp"), 32, 32)
 
 var iScaredGhost : array 0 .. 1 of int
-iScaredGhost (0) := Pic.Scale (Pic.FileNew ("pacman/scared_ghost1.bmp"), 32, 32)
-iScaredGhost (1) := Pic.Scale (Pic.FileNew ("pacman/scared_ghost2.bmp"), 32, 32)
+iScaredGhost (0) := Pic.Scale (Pic.FileNew ("pacman/textures/scared_ghost1.bmp"), 32, 32)
+iScaredGhost (1) := Pic.Scale (Pic.FileNew ("pacman/textures/scared_ghost2.bmp"), 32, 32)
 
 
 var iWhiteText : array 0 .. 43 of int
@@ -404,11 +406,16 @@ class Rectangle
     import debug, Direction
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove, dir, autoCollisionMove, setDirection
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, collisionMove, dir, autoCollisionMove, setDirection, reset
 
-    var x, y, width, height : int
+    var x, y, origX, origY, width, height : int
+    var initOrigPos := true
 
     var dir := Direction.none
+    var origDir := Direction.none
+    var initOrigDir := true
+
+
 
     proc setRectangle (newX, newY, newWidth, newHeight : int)
 	x := newX
@@ -427,13 +434,18 @@ class Rectangle
     end intersects
 
     proc setPosition (xPos, yPos : int)
+	if initOrigPos then
+	    origX := xPos
+	    origY := yPos
+	    initOrigPos := false
+	end if
 	x := xPos
 	y := yPos
     end setPosition
 
     proc move (xOff, yOff : int)
-	x := x + xOff
-	y := y + yOff
+	x += xOff
+	y += yOff
     end move
 
     % Use for when the player uses the keys to try and move
@@ -444,13 +456,13 @@ class Rectangle
 	    if isTouching (rects (i)) then
 		move (-xOff, -yOff)
 
-		if xOff = 1 and yOff = 0 and dir = Direction.right then
+		if xOff > 0 and yOff = 0 and dir = Direction.right then
 		    dir := Direction.none
-		elsif xOff = -1 and yOff = 0 and dir = Direction.left then
+		elsif xOff < 0 and yOff = 0 and dir = Direction.left then
 		    dir := Direction.none
-		elsif xOff = 0 and yOff = 1 and dir = Direction.up then
+		elsif xOff = 0 and yOff > 0 and dir = Direction.up then
 		    dir := Direction.none
-		elsif xOff = 0 and yOff = -1 and dir = Direction.down then
+		elsif xOff = 0 and yOff < 0 and dir = Direction.down then
 		    dir := Direction.none
 		end if
 
@@ -458,13 +470,13 @@ class Rectangle
 	    end if
 	end for
 
-	if xOff = 1 and yOff = 0 then
+	if xOff > 0 and yOff = 0 then
 	    dir := Direction.right
-	elsif xOff = -1 and yOff = 0 then
+	elsif xOff < 0 and yOff = 0 then
 	    dir := Direction.left
-	elsif xOff = 0 and yOff = 1 then
+	elsif xOff = 0 and yOff > 0 then
 	    dir := Direction.up
-	elsif xOff = 0 and yOff = -1 then
+	elsif xOff = 0 and yOff < 0 then
 	    dir := Direction.down
 	end if
 
@@ -472,8 +484,21 @@ class Rectangle
     end collisionMove
 
     proc setDirection (newDir : Direction)
+	if initOrigDir then
+	    origDir := newDir
+	    initOrigDir := false
+	end if
 	dir := newDir
     end setDirection
+
+    proc reset
+	if not initOrigDir then
+	    setDirection (origDir)
+	end if
+	if not initOrigPos then
+	    setPosition (origX, origY)
+	end if
+    end reset
 
     % Only used for when the game automatically moves the player
     fcn autoCollisionMove (xOff, yOff : int, rects : array 0 .. * of ^Rectangle) : boolean
@@ -522,7 +547,7 @@ class AnimationRectangle
     import Rectangle, FrameHolder
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, autoCollisionMove
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, autoCollisionMove, reset
 
     var rec : ^Rectangle
     new rec
@@ -588,6 +613,10 @@ class AnimationRectangle
     proc move (xOff, yOff : int)
 	rec -> move (xOff, yOff)
     end move
+
+    proc reset
+	rec -> reset
+    end reset
 
     proc draw
 	framesPassed := framesPassed + 1
@@ -689,7 +718,7 @@ class SpriteRectangle
     import Rectangle, Direction, FrameHolder
     %% This tells us what can be used outside the class
     %% if not listed here it cannot be used outside the class
-    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, direction, autoCollisionMove, setDirection
+    export setRectangle, x, y, width, height, isTouching, move, draw, setPosition, setFrames, collisionMove, direction, autoCollisionMove, setDirection, reset
 
     var rec : ^Rectangle
     new rec
@@ -764,6 +793,10 @@ class SpriteRectangle
     proc move (xOff, yOff : int)
 	rec -> move (xOff, yOff)
     end move
+
+    proc reset
+	rec -> reset
+    end reset
 
     fcn direction : Direction
 	result rec -> dir
@@ -870,6 +903,7 @@ class Pellet
 	isEaten := false
 	framesPassed := 0
 	currentFrame := 0
+	rec -> reset
     end reset
 
     fcn x : int
@@ -919,12 +953,6 @@ class Pellet
     end draw
 
 end Pellet
-
-var User : ^SpriteRectangle
-new User
-
-User -> setRectangle (104, 68, 16, 16)
-User -> setFrames (iPacmanUp, iPacmanDown, iPacmanLeft, iPacmanRight, 5, 1, 0)
 
 var bottomWall0 : ^Rectangle
 new bottomWall0
@@ -1216,7 +1244,7 @@ end for
 
 var newPellet1 : ^Pellet
 new newPellet1
-newPellet1 -> setFrames (8)
+newPellet1 -> setFrames (6)
 newPellet1 -> setPellet (8, 72)
 
 pellets (totalPellets) := newPellet1
@@ -1224,7 +1252,7 @@ totalPellets := totalPellets + 1
 
 var newPellet2 : ^Pellet
 new newPellet2
-newPellet2 -> setFrames (8)
+newPellet2 -> setFrames (6)
 newPellet2 -> setPellet (208, 72)
 
 pellets (totalPellets) := newPellet2
@@ -1232,7 +1260,7 @@ totalPellets := totalPellets + 1
 
 var newPellet3 : ^Pellet
 new newPellet3
-newPellet3 -> setFrames (8)
+newPellet3 -> setFrames (6)
 newPellet3 -> setPellet (8, 232)
 
 pellets (totalPellets) := newPellet3
@@ -1240,7 +1268,7 @@ totalPellets := totalPellets + 1
 
 var newPellet4 : ^Pellet
 new newPellet4
-newPellet4 -> setFrames (8)
+newPellet4 -> setFrames (6)
 newPellet4 -> setPellet (208, 232)
 
 pellets (totalPellets) := newPellet4
@@ -1600,6 +1628,13 @@ for i : 0 .. 3 % Right Column top
     totalPellets := totalPellets + 1
 end for
 
+var User : ^SpriteRectangle
+new User
+
+User -> setRectangle (104, 68, 16, 16)
+User -> setDirection (Direction.up)
+User -> setFrames (iPacmanUp, iPacmanDown, iPacmanLeft, iPacmanRight, 2, 1, 0)
+
 var titleCredits1 : ^TextHolder
 new titleCredits1
 titleCredits1 -> setText (FontType.normal_white, "CREDIT 1")
@@ -1643,7 +1678,7 @@ inGameOneUpText (1) := inGame1Up2
 var inGameOneUp : ^AnimationText
 new inGameOneUp
 inGameOneUp -> setPosition (25, 279)
-inGameOneUp -> setFrames (inGameOneUpText, 22)
+inGameOneUp -> setFrames (inGameOneUpText, 16)
 
 
 
@@ -1717,8 +1752,8 @@ elsif openTime >= 4 then
 	drawText (xTitleOff - 10, yTitleOff - (16 * 6), FontType.normal_white, "A GLITCH WHICH OCCURS")
 	drawText (xTitleOff - 10, yTitleOff - (16 * 7), FontType.normal_white, "IN LEVEL 256 OF PACMAN")
     elsif trivia = 6 then
-	var howManyTimes := "GAME " 
-	howManyTimes += intstr(openTime)
+	var howManyTimes := "GAME "
+	howManyTimes += intstr (openTime)
 	howManyTimes += " TIMES"
 	drawText (xTitleOff - 7, yTitleOff - (16 * 3), FontType.normal_white, "YOU'VE LOADED THIS")
 	drawText (xTitleOff - 7, yTitleOff - (16 * 4), FontType.normal_white, howManyTimes)
@@ -1740,7 +1775,7 @@ loop
     if chars ('r') then
 	resetSaveVariables
     end if
-    
+
     if chars (KEY_ENTER) then
 	lastEnter := true
     elsif lastEnter then
@@ -1848,9 +1883,9 @@ end updateAI
 % Does additional game functions that isn't in Input or Rendering or AI
 body proc gameMath
     if User -> isTouching (leftTelePad) then
-	User -> setPosition (219, 140)
+	User -> setPosition (218, 140)
     elsif User -> isTouching (rightTelePad) then
-	User -> setPosition (-11, 140)
+	User -> setPosition (-12, 140)
     end if
 
     var playerPelletRect : ^Rectangle
@@ -1863,6 +1898,10 @@ body proc gameMath
 	end if
     end for
 
+    if score > highScore then
+	highScore := score
+    end if
+
 end gameMath
 
 % Draws the screen
@@ -1873,8 +1912,10 @@ body proc drawPlayScreen
     Pic.Draw (iMap, 0, 0, picUnderMerge)
 
     inGameOneUp -> draw
+    drawTextRight (56, 271, FontType.normal_white, intstr (score))
     drawText (72, 279, FontType.normal_white, "HIGH SCORE")
-    
+    drawTextRight (136, 271, FontType.normal_white, intstr (highScore))
+
     User -> draw
 
     for i : 0 .. upper (walls)
@@ -1899,7 +1940,7 @@ body proc gameInput
     Input.KeyDown (chars)
 
     if (chars (KEY_UP_ARROW)) then
-	if User -> collisionMove (0, 1, walls) then
+	if User -> collisionMove (0, 2, walls) then
 	    autoUpOverride := true
 	end if
     else
@@ -1907,7 +1948,7 @@ body proc gameInput
     end if
 
     if (chars (KEY_DOWN_ARROW)) then
-	if User -> collisionMove (0, -1, walls) then
+	if User -> collisionMove (0, -2, walls) then
 	    autoDownOverride := true
 	end if
     else
@@ -1915,7 +1956,7 @@ body proc gameInput
     end if
 
     if (chars (KEY_RIGHT_ARROW)) then
-	if User -> collisionMove (1, 0, walls) then
+	if User -> collisionMove (2, 0, walls) then
 	    autoRightOverride := true
 	end if
     else
@@ -1923,7 +1964,7 @@ body proc gameInput
     end if
 
     if (chars (KEY_LEFT_ARROW)) then
-	if User -> collisionMove (-1, 0, walls) then
+	if User -> collisionMove (-2, 0, walls) then
 	    autoLeftOverride := true
 	end if
     else
@@ -1931,19 +1972,19 @@ body proc gameInput
     end if
 
     if User -> direction = Direction.right and not autoRightOverride then
-	if not User -> autoCollisionMove (1, 0, walls) then
+	if not User -> autoCollisionMove (2, 0, walls) then
 
 	end if
     elsif User -> direction = Direction.left and not autoLeftOverride then
-	if not User -> autoCollisionMove (-1, 0, walls) then
+	if not User -> autoCollisionMove (-2, 0, walls) then
 
 	end if
     elsif User -> direction = Direction.up and not autoUpOverride then
-	if not User -> autoCollisionMove (0, 1, walls) then
+	if not User -> autoCollisionMove (0, 2, walls) then
 
 	end if
     elsif User -> direction = Direction.down and not autoDownOverride then
-	if not User -> autoCollisionMove (0, -1, walls) then
+	if not User -> autoCollisionMove (0, -2, walls) then
 
 	end if
     end if
@@ -1961,18 +2002,18 @@ end gameInput
 
 
 body proc addScore
-
+    score += toAdd
 end addScore
 
 % Resets the in game values
 body proc reset
     setupNextLevel
     score := 0
+    saveFile
 end reset
 
 body proc setupNextLevel
-    User -> setPosition (104, 68)
-    User -> setDirection (Direction.up)
+    User -> reset
 
     for i : 0 .. upper (pellets)
 	if (i < totalPellets) then
@@ -1989,6 +2030,7 @@ body proc drawMenuScreen
 
     drawText (25, 279, FontType.normal_white, "1UP")
     drawText (72, 279, FontType.normal_white, "HIGH SCORE")
+    drawTextRight (136, 271, FontType.normal_white, intstr (highScore))
     drawText (176, 279, FontType.normal_white, "2UP")
 
     drawText (56, 240, FontType.normal_white, "CHARACTER / NICKNAME")
@@ -2066,6 +2108,10 @@ body proc menuInput
 	reset
     end if
 
+    if chars (KEY_ESC) then
+	closeGame
+    end if
+
     % Updates the filtering variables (MUST BE LAST)
     upLast := keyUp
     downLast := keyDown
@@ -2073,7 +2119,15 @@ body proc menuInput
     rightLast := keyRight
 end menuInput
 
-% Draws a number (used to draw the score)
+body proc drawTextRight
+    drawText (x - floor (length (text) * 8), y, font, text)
+end drawTextRight
+
+body proc drawTextCenter
+    drawText (x - floor ((length (text) * 8) / 2), y, font, text)
+end drawTextCenter
+
+% Draws text to the screen
 body proc drawText
     for i : 1 .. length (text)
 	if not text (i) = " " then
