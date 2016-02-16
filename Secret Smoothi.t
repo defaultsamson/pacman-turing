@@ -1,4 +1,5 @@
 /* -Fruit appears for Pacman to eat after eating 70 dots and 170 dots.
+ * -Bonus Pacman for 10000 points
  *
  * AI
  * - Blinky is the strict chaser and will never stray from Pacman's back.
@@ -13,13 +14,16 @@ setscreen ("graphics:448;576, nobuttonbar, position:center;center, noecho, offsc
 var exitProgram := false
 
 type Direction : enum (up, down, left, right, none)
-type FontType : enum (normal_white, normal_pink, normal_red, normal_orange, normal_blue)
+type FontType : enum (normal_white, normal_pink, normal_red, normal_orange, normal_blue, normal_yellow)
 
 % Initializes all the procedures and their parameters
 forward proc drawPlayScreen
 forward proc drawTextRight (x, y : int, font : FontType, text : string)
 forward proc drawTextCenter (x, y : int, font : FontType, text : string)
 forward proc drawText (x, y : int, font : FontType, text : string)
+forward proc drawNumber (x, y : int, font : FontType, num : int)
+forward proc drawNumberRight (x, y : int, font : FontType, num : int)
+forward proc drawNumberCenter (x, y : int, font : FontType, num : int)
 forward proc gameInput
 forward proc drawMenuScreen
 forward proc addScore (toAdd : int)
@@ -212,6 +216,17 @@ iWhiteText (40) := Pic.Scale (Pic.FileNew ("pacman/font/whitehyphen.bmp"), 16, 1
 iWhiteText (41) := Pic.Scale (Pic.FileNew ("pacman/font/whitecopy.bmp"), 16, 16)
 iWhiteText (42) := Pic.Scale (Pic.FileNew ("pacman/font/whitecomma.bmp"), 16, 16)
 iWhiteText (43) := Pic.Scale (Pic.FileNew ("pacman/font/whiteapos.bmp"), 16, 16)
+/*
+iWhiteText (44) := Pic.Scale (Pic.FileNew ("pacman/font/whitea10.bmp"), 16, 16)
+iWhiteText (45) := Pic.Scale (Pic.FileNew ("pacman/font/whitea20.bmp"), 16, 16)
+iWhiteText (46) := Pic.Scale (Pic.FileNew ("pacman/font/whitea30.bmp"), 16, 16)
+iWhiteText (47) := Pic.Scale (Pic.FileNew ("pacman/font/whitea40.bmp"), 16, 16)
+iWhiteText (48) := Pic.Scale (Pic.FileNew ("pacman/font/whitea50.bmp"), 16, 16)
+iWhiteText (49) := Pic.Scale (Pic.FileNew ("pacman/font/whitea160.bmp"), 16, 16)
+iWhiteText (50) := Pic.Scale (Pic.FileNew ("pacman/font/whitea200.bmp"), 16, 16)
+iWhiteText (51) := Pic.Scale (Pic.FileNew ("pacman/font/whitea400.bmp"), 16, 16)
+iWhiteText (52) := Pic.Scale (Pic.FileNew ("pacman/font/whitea800.bmp"), 16, 16)
+iWhiteText (53) := Pic.Scale (Pic.FileNew ("pacman/font/whitea1600.bmp"), 16, 16)*/
 
 var iPinkText : array 0 .. 43 of int
 iPinkText (0) := Pic.Scale (Pic.FileNew ("pacman/font/pink0.bmp"), 16, 16)
@@ -396,6 +411,52 @@ iBlueText (40) := Pic.Scale (Pic.FileNew ("pacman/font/bluehyphen.bmp"), 16, 16)
 iBlueText (41) := Pic.Scale (Pic.FileNew ("pacman/font/bluecopy.bmp"), 16, 16)
 iBlueText (42) := Pic.Scale (Pic.FileNew ("pacman/font/bluecomma.bmp"), 16, 16)
 iBlueText (43) := Pic.Scale (Pic.FileNew ("pacman/font/blueapos.bmp"), 16, 16)
+
+var iYellowText : array 0 .. 43 of int
+iYellowText (0) := Pic.Scale (Pic.FileNew ("pacman/font/yellow0.bmp"), 16, 16)
+iYellowText (1) := Pic.Scale (Pic.FileNew ("pacman/font/yellow1.bmp"), 16, 16)
+iYellowText (2) := Pic.Scale (Pic.FileNew ("pacman/font/yellow2.bmp"), 16, 16)
+iYellowText (3) := Pic.Scale (Pic.FileNew ("pacman/font/yellow3.bmp"), 16, 16)
+iYellowText (4) := Pic.Scale (Pic.FileNew ("pacman/font/yellow4.bmp"), 16, 16)
+iYellowText (5) := Pic.Scale (Pic.FileNew ("pacman/font/yellow5.bmp"), 16, 16)
+iYellowText (6) := Pic.Scale (Pic.FileNew ("pacman/font/yellow6.bmp"), 16, 16)
+iYellowText (7) := Pic.Scale (Pic.FileNew ("pacman/font/yellow7.bmp"), 16, 16)
+iYellowText (8) := Pic.Scale (Pic.FileNew ("pacman/font/yellow8.bmp"), 16, 16)
+iYellowText (9) := Pic.Scale (Pic.FileNew ("pacman/font/yellow9.bmp"), 16, 16)
+iYellowText (10) := Pic.Scale (Pic.FileNew ("pacman/font/yellowa.bmp"), 16, 16)
+iYellowText (11) := Pic.Scale (Pic.FileNew ("pacman/font/yellowb.bmp"), 16, 16)
+iYellowText (12) := Pic.Scale (Pic.FileNew ("pacman/font/yellowc.bmp"), 16, 16)
+iYellowText (13) := Pic.Scale (Pic.FileNew ("pacman/font/yellowd.bmp"), 16, 16)
+iYellowText (14) := Pic.Scale (Pic.FileNew ("pacman/font/yellowe.bmp"), 16, 16)
+iYellowText (15) := Pic.Scale (Pic.FileNew ("pacman/font/yellowf.bmp"), 16, 16)
+iYellowText (16) := Pic.Scale (Pic.FileNew ("pacman/font/yellowg.bmp"), 16, 16)
+iYellowText (17) := Pic.Scale (Pic.FileNew ("pacman/font/yellowh.bmp"), 16, 16)
+iYellowText (18) := Pic.Scale (Pic.FileNew ("pacman/font/yellowi.bmp"), 16, 16)
+iYellowText (19) := Pic.Scale (Pic.FileNew ("pacman/font/yellowj.bmp"), 16, 16)
+iYellowText (20) := Pic.Scale (Pic.FileNew ("pacman/font/yellowk.bmp"), 16, 16)
+iYellowText (21) := Pic.Scale (Pic.FileNew ("pacman/font/yellowl.bmp"), 16, 16)
+iYellowText (22) := Pic.Scale (Pic.FileNew ("pacman/font/yellowm.bmp"), 16, 16)
+iYellowText (23) := Pic.Scale (Pic.FileNew ("pacman/font/yellown.bmp"), 16, 16)
+iYellowText (24) := Pic.Scale (Pic.FileNew ("pacman/font/yellowo.bmp"), 16, 16)
+iYellowText (25) := Pic.Scale (Pic.FileNew ("pacman/font/yellowp.bmp"), 16, 16)
+iYellowText (26) := Pic.Scale (Pic.FileNew ("pacman/font/yellowq.bmp"), 16, 16)
+iYellowText (27) := Pic.Scale (Pic.FileNew ("pacman/font/yellowr.bmp"), 16, 16)
+iYellowText (28) := Pic.Scale (Pic.FileNew ("pacman/font/yellows.bmp"), 16, 16)
+iYellowText (29) := Pic.Scale (Pic.FileNew ("pacman/font/yellowt.bmp"), 16, 16)
+iYellowText (30) := Pic.Scale (Pic.FileNew ("pacman/font/yellowu.bmp"), 16, 16)
+iYellowText (31) := Pic.Scale (Pic.FileNew ("pacman/font/yellowv.bmp"), 16, 16)
+iYellowText (32) := Pic.Scale (Pic.FileNew ("pacman/font/yelloww.bmp"), 16, 16)
+iYellowText (33) := Pic.Scale (Pic.FileNew ("pacman/font/yellowx.bmp"), 16, 16)
+iYellowText (34) := Pic.Scale (Pic.FileNew ("pacman/font/yellowy.bmp"), 16, 16)
+iYellowText (35) := Pic.Scale (Pic.FileNew ("pacman/font/yellowz.bmp"), 16, 16)
+iYellowText (36) := Pic.Scale (Pic.FileNew ("pacman/font/yellowperiod.bmp"), 16, 16)
+iYellowText (37) := Pic.Scale (Pic.FileNew ("pacman/font/yellowexclaim.bmp"), 16, 16)
+iYellowText (38) := Pic.Scale (Pic.FileNew ("pacman/font/yellowslash.bmp"), 16, 16)
+iYellowText (39) := Pic.Scale (Pic.FileNew ("pacman/font/yellowquote.bmp"), 16, 16)
+iYellowText (40) := Pic.Scale (Pic.FileNew ("pacman/font/yellowhyphen.bmp"), 16, 16)
+iYellowText (41) := Pic.Scale (Pic.FileNew ("pacman/font/yellowcopy.bmp"), 16, 16)
+iYellowText (42) := Pic.Scale (Pic.FileNew ("pacman/font/yellowcomma.bmp"), 16, 16)
+iYellowText (43) := Pic.Scale (Pic.FileNew ("pacman/font/yellowapos.bmp"), 16, 16)
 
 View.SetTransparentColor (black)
 
@@ -2023,30 +2084,95 @@ body proc setupNextLevel
     end for
 end setupNextLevel
 
+var menuTick := 0
+
 %Draws the menu screen
 body proc drawMenuScreen
 
-    % Draws the background
-    drawfillbox (0, 0, maxx, maxy, black)
+    if menuTick >= 0 then
+	% Draws the background
+	drawfillbox (0, 0, maxx, maxy, black)
 
-    drawText (25, 279, FontType.normal_white, "1UP")
-    drawText (72, 279, FontType.normal_white, "HIGH SCORE")
-    drawTextRight (136, 271, FontType.normal_white, intstr (highScore))
-    drawText (176, 279, FontType.normal_white, "2UP")
+	drawText (25, 279, FontType.normal_white, "1UP")
+	drawText (72, 279, FontType.normal_white, "HIGH SCORE")
+	drawTextRight (136, 271, FontType.normal_white, intstr (highScore))
+	drawText (176, 279, FontType.normal_white, "2UP")
 
-    drawText (56, 240, FontType.normal_white, "CHARACTER / NICKNAME")
+	if menuTick >= 20 then
+	    drawText (56, 240, FontType.normal_white, "CHARACTER / NICKNAME")
 
-    drawText (56, 224, FontType.normal_red, "-SHADOWN")
-    drawText (144, 224, FontType.normal_red, "\"BLINKY\"")
+	    if menuTick >= 40 then
+		Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
 
-    drawText (56, 200, FontType.normal_pink, "-SPEEDY")
-    drawText (144, 200, FontType.normal_pink, "\"PINKY\"")
+		if menuTick >= 70 then
+		    drawText (56, 224, FontType.normal_red, "-SHADOW")
 
-    drawText (56, 176, FontType.normal_blue, "-BASHFUL")
-    drawText (144, 176, FontType.normal_blue, "\"INKY\"")
+		    if menuTick >= 80 then
+			drawText (144, 224, FontType.normal_red, "\"BLINKY\"")
 
-    drawText (56, 152, FontType.normal_orange, "-POKEY")
-    drawText (144, 152, FontType.normal_orange, "\"CLYDE\"")
+			if menuTick >= 110 then
+			    Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
+
+			    if menuTick >= 140 then
+				drawText (56, 200, FontType.normal_pink, "-SPEEDY")
+
+				if menuTick >= 160 then
+				    drawText (144, 200, FontType.normal_pink, "\"PINKY\"")
+
+				    if menuTick >= 180 then
+					Pic.Draw (iInkyRight (0), (33 * 2) - 2, (174 * 2) - 2, picUnderMerge)
+
+					if menuTick >= 210 then
+					    drawText (56, 176, FontType.normal_blue, "-BASHFUL")
+
+					    if menuTick >= 230 then
+						drawText (144, 176, FontType.normal_blue, "\"INKY\"")
+
+						if menuTick >= 250 then
+						    Pic.Draw (iClydeRight (0), (33 * 2) - 2, (150 * 2) - 2, picUnderMerge)
+
+						    if menuTick >= 280 then
+							drawText (56, 152, FontType.normal_orange, "-POKEY")
+
+							if menuTick >= 300 then
+							    drawText (144, 152, FontType.normal_orange, "\"CLYDE\"")
+
+							    if menuTick >= 20 then
+
+								if menuTick >= 20 then
+
+								    if menuTick >= 20 then
+
+								    end if
+								end if
+							    end if
+							end if
+						    end if
+						end if
+					    end if
+					end if
+				    end if
+				end if
+			    end if
+			end if
+		    end if
+		end if
+	    end if
+	end if
+    end if
+
+    menuTick += 1
+
+
+
+
+
+
+
+
+
+
+
 
     drawText (96, 88, FontType.normal_white, "10")
     drawText (96, 72, FontType.normal_white, "50")
@@ -2059,10 +2185,10 @@ body proc drawMenuScreen
     smallMenuPellet -> draw
     titleCredits -> draw
 
-    Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
-    Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
-    Pic.Draw (iInkyRight (0), (33 * 2) - 2, (174 * 2) - 2, picUnderMerge)
-    Pic.Draw (iClydeRight (0), (33 * 2) - 2, (150 * 2) - 2, picUnderMerge)
+
+
+
+
 
     Pic.Draw (iScaredGhost (0), (89 * 2) - 2, (117 * 2) - 2, picUnderMerge)
     Pic.Draw (iScaredGhost (0), (104 * 2) - 1, (117 * 2) - 2, picUnderMerge)
@@ -2236,12 +2362,67 @@ body proc drawText
 		picID := iBlueText (letterOrdinal)
 	    elsif font = FontType.normal_orange then
 		picID := iOrangeText (letterOrdinal)
+	    elsif font = FontType.normal_yellow then
+		picID := iYellowText (letterOrdinal)
 	    end if
 
 	    Pic.Draw (picID, (x * 2) + ((i - 1) * 16), (y * 2), picUnderMerge)
 	end if
     end for
 end drawText
+
+body proc drawNumberRight
+    drawNumber (x, y, font, num)
+end drawNumberRight
+
+body proc drawNumberCenter
+    drawNumber (x, y, font, num)
+end drawNumberCenter
+
+% Draws text to the screen
+body proc drawNumber
+    var letterOrdinal := 0
+
+    if num = 10 then
+	letterOrdinal := 0
+    elsif num = 20 then
+	letterOrdinal := 1
+    elsif num = 30 then
+	letterOrdinal := 2
+    elsif num = 40 then
+	letterOrdinal := 3
+    elsif num = 50 then
+	letterOrdinal := 4
+    elsif num = 160 then
+	letterOrdinal := 4
+    elsif num = 200 then
+	letterOrdinal := 4
+    elsif num = 400 then
+	letterOrdinal := 4
+    elsif num = 800 then
+	letterOrdinal := 4
+    elsif num = 1600 then
+	letterOrdinal := 4
+    end if
+    
+    var picID : int
+
+    if font = FontType.normal_white then
+	picID := iWhiteText (letterOrdinal)
+    elsif font = FontType.normal_pink then
+	picID := iPinkText (letterOrdinal)
+    elsif font = FontType.normal_red then
+	picID := iRedText (letterOrdinal)
+    elsif font = FontType.normal_blue then
+	picID := iBlueText (letterOrdinal)
+    elsif font = FontType.normal_orange then
+	picID := iOrangeText (letterOrdinal)
+    elsif font = FontType.normal_yellow then
+	picID := iYellowText (letterOrdinal)
+    end if
+
+    Pic.Draw (picID, (x * 2), (y * 2), picUnderMerge)
+end drawNumber
 
 body proc loadFile
     var stremin : int
