@@ -1,9 +1,16 @@
+proc playMusic
+	Music.PlayFileReturn ("pacman/audio/pacman_alarm1.wav")
+    end playMusic
+    
 % Loop playing background music until 'finished' is true.
 process BackgroundMusic
+    
     loop
-	Music.PlayFileLoop ("pacman/audio/pacman_alarm1.mp3")
-	delay (1200)
+	playMusic
+	delay(900)
     end loop
+
+
 end BackgroundMusic
 
 fork BackgroundMusic            % Start the background music

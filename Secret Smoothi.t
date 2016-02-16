@@ -417,9 +417,18 @@ class Rectangle
 
 
 
+    proc setPosition (xPos, yPos : int)
+	if initOrigPos then
+	    origX := xPos
+	    origY := yPos
+	    initOrigPos := false
+	end if
+	x := xPos
+	y := yPos
+    end setPosition
+
     proc setRectangle (newX, newY, newWidth, newHeight : int)
-	x := newX
-	y := newY
+	setPosition (newX, newY)
 	width := newWidth
 	height := newHeight
     end setRectangle
@@ -432,16 +441,6 @@ class Rectangle
     fcn intersects (inX, inY : int) : boolean
 	result (inX > x and inX < x + width and inY > y and inY < inY + height)
     end intersects
-
-    proc setPosition (xPos, yPos : int)
-	if initOrigPos then
-	    origX := xPos
-	    origY := yPos
-	    initOrigPos := false
-	end if
-	x := xPos
-	y := yPos
-    end setPosition
 
     proc move (xOff, yOff : int)
 	x += xOff
@@ -796,6 +795,8 @@ class SpriteRectangle
 
     proc reset
 	rec -> reset
+	framesPassed := 0
+	currentFrame := 0
     end reset
 
     fcn direction : Direction
