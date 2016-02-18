@@ -45,6 +45,8 @@ const halfy := floor (maxy / 2)
 const xMenuOff := 110
 const yMenuOff := 430
 
+const pelletFlashTicks := 6
+
 const tickInterval := (1000 / 40) % The time in milliseconds between ticks
 var currentTime := 0
 var lastTick := 0
@@ -217,16 +219,16 @@ iWhiteText (41) := Pic.Scale (Pic.FileNew ("pacman/font/whitecopy.bmp"), 16, 16)
 iWhiteText (42) := Pic.Scale (Pic.FileNew ("pacman/font/whitecomma.bmp"), 16, 16)
 iWhiteText (43) := Pic.Scale (Pic.FileNew ("pacman/font/whiteapos.bmp"), 16, 16)
 /*
-iWhiteText (44) := Pic.Scale (Pic.FileNew ("pacman/font/whitea10.bmp"), 16, 16)
-iWhiteText (45) := Pic.Scale (Pic.FileNew ("pacman/font/whitea20.bmp"), 16, 16)
-iWhiteText (46) := Pic.Scale (Pic.FileNew ("pacman/font/whitea30.bmp"), 16, 16)
-iWhiteText (47) := Pic.Scale (Pic.FileNew ("pacman/font/whitea40.bmp"), 16, 16)
-iWhiteText (48) := Pic.Scale (Pic.FileNew ("pacman/font/whitea50.bmp"), 16, 16)
-iWhiteText (49) := Pic.Scale (Pic.FileNew ("pacman/font/whitea160.bmp"), 16, 16)
-iWhiteText (50) := Pic.Scale (Pic.FileNew ("pacman/font/whitea200.bmp"), 16, 16)
-iWhiteText (51) := Pic.Scale (Pic.FileNew ("pacman/font/whitea400.bmp"), 16, 16)
-iWhiteText (52) := Pic.Scale (Pic.FileNew ("pacman/font/whitea800.bmp"), 16, 16)
-iWhiteText (53) := Pic.Scale (Pic.FileNew ("pacman/font/whitea1600.bmp"), 16, 16)*/
+ iWhiteText (44) := Pic.Scale (Pic.FileNew ("pacman/font/whitea10.bmp"), 16, 16)
+ iWhiteText (45) := Pic.Scale (Pic.FileNew ("pacman/font/whitea20.bmp"), 16, 16)
+ iWhiteText (46) := Pic.Scale (Pic.FileNew ("pacman/font/whitea30.bmp"), 16, 16)
+ iWhiteText (47) := Pic.Scale (Pic.FileNew ("pacman/font/whitea40.bmp"), 16, 16)
+ iWhiteText (48) := Pic.Scale (Pic.FileNew ("pacman/font/whitea50.bmp"), 16, 16)
+ iWhiteText (49) := Pic.Scale (Pic.FileNew ("pacman/font/whitea160.bmp"), 16, 16)
+ iWhiteText (50) := Pic.Scale (Pic.FileNew ("pacman/font/whitea200.bmp"), 16, 16)
+ iWhiteText (51) := Pic.Scale (Pic.FileNew ("pacman/font/whitea400.bmp"), 16, 16)
+ iWhiteText (52) := Pic.Scale (Pic.FileNew ("pacman/font/whitea800.bmp"), 16, 16)
+ iWhiteText (53) := Pic.Scale (Pic.FileNew ("pacman/font/whitea1600.bmp"), 16, 16)*/
 
 var iPinkText : array 0 .. 43 of int
 iPinkText (0) := Pic.Scale (Pic.FileNew ("pacman/font/pink0.bmp"), 16, 16)
@@ -1306,7 +1308,7 @@ end for
 
 var newPellet1 : ^Pellet
 new newPellet1
-newPellet1 -> setFrames (6)
+newPellet1 -> setFrames (pelletFlashTicks)
 newPellet1 -> setPellet (8, 72)
 
 pellets (totalPellets) := newPellet1
@@ -1314,7 +1316,7 @@ totalPellets := totalPellets + 1
 
 var newPellet2 : ^Pellet
 new newPellet2
-newPellet2 -> setFrames (6)
+newPellet2 -> setFrames (pelletFlashTicks)
 newPellet2 -> setPellet (208, 72)
 
 pellets (totalPellets) := newPellet2
@@ -1322,7 +1324,7 @@ totalPellets := totalPellets + 1
 
 var newPellet3 : ^Pellet
 new newPellet3
-newPellet3 -> setFrames (6)
+newPellet3 -> setFrames (pelletFlashTicks)
 newPellet3 -> setPellet (8, 232)
 
 pellets (totalPellets) := newPellet3
@@ -1330,7 +1332,7 @@ totalPellets := totalPellets + 1
 
 var newPellet4 : ^Pellet
 new newPellet4
-newPellet4 -> setFrames (6)
+newPellet4 -> setFrames (pelletFlashTicks)
 newPellet4 -> setPellet (208, 232)
 
 pellets (totalPellets) := newPellet4
@@ -1714,11 +1716,17 @@ new titleCredits
 titleCredits -> setPosition (16, 0)
 titleCredits -> setFrames (titleCreditsText, 38)
 
-var largeMenuPellet : ^Pellet
-new largeMenuPellet
-largeMenuPellet -> setStill (true)
-largeMenuPellet -> setFrames (1)
-largeMenuPellet -> setPellet (80, 72)
+var largeMenuPellet1 : ^Pellet
+new largeMenuPellet1
+largeMenuPellet1 -> setStill (true)
+largeMenuPellet1 -> setFrames (pelletFlashTicks)
+largeMenuPellet1 -> setPellet (80, 72)
+
+var largeMenuPellet2 : ^Pellet
+new largeMenuPellet2
+largeMenuPellet2 -> setStill (true)
+largeMenuPellet2 -> setFrames (pelletFlashTicks)
+largeMenuPellet2 -> setPellet (32, 119)
 
 var smallMenuPellet : ^Pellet
 new smallMenuPellet
@@ -2100,64 +2108,71 @@ body proc drawMenuScreen
 
 	if menuTick >= 20 then
 	    drawText (56, 240, FontType.normal_white, "CHARACTER / NICKNAME")
+	end if
 
-	    if menuTick >= 40 then
-		Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
+	if menuTick >= 40 then
+	    Pic.Draw (iBlinkyRight (0), (33 * 2) - 2, (222 * 2) - 2, picUnderMerge)
+	end if
 
-		if menuTick >= 70 then
-		    drawText (56, 224, FontType.normal_red, "-SHADOW")
+	if menuTick >= 70 then
+	    drawText (56, 224, FontType.normal_red, "-SHADOW")
+	end if
 
-		    if menuTick >= 80 then
-			drawText (144, 224, FontType.normal_red, "\"BLINKY\"")
+	if menuTick >= 90 then
+	    drawText (144, 224, FontType.normal_red, "\"BLINKY\"")
+	end if
 
-			if menuTick >= 110 then
-			    Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
+	if menuTick >= 110 then
+	    Pic.Draw (iPinkyRight (0), (33 * 2) - 2, (198 * 2) - 2, picUnderMerge)
+	end if
 
-			    if menuTick >= 140 then
-				drawText (56, 200, FontType.normal_pink, "-SPEEDY")
+	if menuTick >= 140 then
+	    drawText (56, 200, FontType.normal_pink, "-SPEEDY")
+	end if
 
-				if menuTick >= 160 then
-				    drawText (144, 200, FontType.normal_pink, "\"PINKY\"")
+	if menuTick >= 160 then
+	    drawText (144, 200, FontType.normal_pink, "\"PINKY\"")
+	end if
 
-				    if menuTick >= 180 then
-					Pic.Draw (iInkyRight (0), (33 * 2) - 2, (174 * 2) - 2, picUnderMerge)
+	if menuTick >= 180 then
+	    Pic.Draw (iInkyRight (0), (33 * 2) - 2, (174 * 2) - 2, picUnderMerge)
+	end if
 
-					if menuTick >= 210 then
-					    drawText (56, 176, FontType.normal_blue, "-BASHFUL")
+	if menuTick >= 210 then
+	    drawText (56, 176, FontType.normal_blue, "-BASHFUL")
+	end if
 
-					    if menuTick >= 230 then
-						drawText (144, 176, FontType.normal_blue, "\"INKY\"")
+	if menuTick >= 230 then
+	    drawText (144, 176, FontType.normal_blue, "\"INKY\"")
+	end if
 
-						if menuTick >= 250 then
-						    Pic.Draw (iClydeRight (0), (33 * 2) - 2, (150 * 2) - 2, picUnderMerge)
+	if menuTick >= 250 then
+	    Pic.Draw (iClydeRight (0), (33 * 2) - 2, (150 * 2) - 2, picUnderMerge)
+	end if
 
-						    if menuTick >= 280 then
-							drawText (56, 152, FontType.normal_orange, "-POKEY")
+	if menuTick >= 280 then
+	    drawText (56, 152, FontType.normal_orange, "-POKEY")
+	end if
 
-							if menuTick >= 300 then
-							    drawText (144, 152, FontType.normal_orange, "\"CLYDE\"")
+	if menuTick >= 300 then
+	    drawText (144, 152, FontType.normal_orange, "\"CLYDE\"")
+	end if
 
-							    if menuTick >= 20 then
+	if menuTick >= 340 then
+	    drawText (96, 88, FontType.normal_white, "10")
+	    drawText (96, 72, FontType.normal_white, "50")
+	    largeMenuPellet1 -> draw
+	    smallMenuPellet -> draw
+	end if
 
-								if menuTick >= 20 then
+	if menuTick >= 380 then
+	    drawText (32, 32, FontType.normal_pink, "© 1980 MIDWAY MFG.CO.")
+	    largeMenuPellet2 -> draw
+	end if
 
-								    if menuTick >= 20 then
-
-								    end if
-								end if
-							    end if
-							end if
-						    end if
-						end if
-					    end if
-					end if
-				    end if
-				end if
-			    end if
-			end if
-		    end if
-		end if
-	    end if
+	if menuTick >= 420 then
+	    largeMenuPellet1 -> setStill (false)
+	    largeMenuPellet2 -> setStill (false)
 	end if
     end if
 
@@ -2174,15 +2189,13 @@ body proc drawMenuScreen
 
 
 
-    drawText (96, 88, FontType.normal_white, "10")
-    drawText (96, 72, FontType.normal_white, "50")
 
-    drawText (32, 32, FontType.normal_pink, "© 1980 MIDWAY MFG.CO.")
+
+
 
     Pic.Draw (iTitle, 0, 0, picUnderMerge)
 
-    largeMenuPellet -> draw
-    smallMenuPellet -> draw
+
     titleCredits -> draw
 
 
@@ -2404,7 +2417,7 @@ body proc drawNumber
     elsif num = 1600 then
 	letterOrdinal := 4
     end if
-    
+
     var picID : int
 
     if font = FontType.normal_white then
