@@ -1750,7 +1750,7 @@ for i : 0 .. 1 % Left column 2nd row
     totalPellets := totalPellets + 1
 end for
 
-for i : 0 .. 24 % Left column GIANT DONG
+for i : 0 .. 24 % Left column
     var newPellet : ^Pellet
     new newPellet
     newPellet -> setPellet (51, 51 + (8 * i))
@@ -1759,7 +1759,7 @@ for i : 0 .. 24 % Left column GIANT DONG
     totalPellets := totalPellets + 1
 end for
 
-for i : 0 .. 24 % Right column GIANT DONG
+for i : 0 .. 24 % Right column
     var newPellet : ^Pellet
     new newPellet
     newPellet -> setPellet (171, 51 + (8 * i))
